@@ -33,9 +33,11 @@ export function ListingCard({ listing }: ListingCardProps) {
   // Data States
   const [vinData, setVinData] = useState<VINData | null>(null);
   const [isLoadingVin, setIsLoadingVin] = useState(false);
+  const [hasFetchedVin, setHasFetchedVin] = useState(false);
   
   const [aiRecord, setAiRecord] = useState<LemonRecord | null>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
+  const [hasFetchedAi, setHasFetchedAi] = useState(false);
 
   // We use the AI record if generated, otherwise fallback to listing.score or a default "Unknown" state until expanded.
   const activeScore = aiRecord ? aiRecord.score : (listing.score ?? 50);
@@ -72,8 +74,9 @@ export function ListingCard({ listing }: ListingCardProps) {
 
   useEffect(() => {
     if (isExpanded) {
-      // Fetch VIN Data
-      if (!vinData && !isLoadingVin) {
+      // Fetch VIN Data (only once)
+      if (!hasFetchedVin) {
+        setHasFetchedVin(true);
         setIsLoadingVin(true);
         decodeVIN(listing.vin).then(data => {
           setVinData(data);
@@ -81,19 +84,27 @@ export function ListingCard({ listing }: ListingCardProps) {
         });
       }
 
-      // Fetch AI Score
-      if (!aiRecord && !isLoadingAi) {
+      // Fetch AI Score (only once)
+      if (!hasFetchedAi) {
+        setHasFetchedAi(true);
         setIsLoadingAi(true);
         fetch(`/api/lemon-score?year=${listing.year}&make=${listing.make}&model=${listing.model}`)
           .then(res => res.json())
           .then(data => {
-            if (!data.error) setAiRecord(data);
+            if (!data.error) {
+              setAiRecord(data);
+            } else {
+              setAiRecord({ score: listing.score ?? 50, defect: "API Rate Limited. Please wait a minute and try again.", advice: "Google Gemini Free Tier limit reached due to earlier loop." });
+            }
             setIsLoadingAi(false);
           })
-          .catch(() => setIsLoadingAi(false));
+          .catch(() => {
+            setAiRecord({ score: listing.score ?? 50, defect: "API Request Failed.", advice: "Ensure you have an active internet connection." });
+            setIsLoadingAi(false);
+          });
       }
     }
-  }, [isExpanded, listing, vinData, isLoadingVin, aiRecord, isLoadingAi]);
+  }, [isExpanded, listing, hasFetchedVin, hasFetchedAi]);
 
   return (
     <div className={`w-full rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden transition-all duration-300 hover:border-zinc-700 ${isExpanded ? "ring-1 ring-zinc-700 shadow-xl shadow-black/50" : ""}`}>

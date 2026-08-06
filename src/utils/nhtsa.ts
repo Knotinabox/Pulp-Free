@@ -7,6 +7,17 @@ export interface VINData {
 }
 
 export async function decodeVIN(vin: string): Promise<VINData | null> {
+  // If it's one of our fake 11-character mock VINs, return dummy factory data
+  if (vin.length < 17) {
+    return {
+      make: "Mock Make",
+      model: "Mock Model",
+      year: "20XX",
+      engineType: "2.4L 4 Cyl",
+      plant: "Assembly Plant, USA"
+    };
+  }
+
   try {
     const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/${vin}?format=json`);
     if (!response.ok) {
