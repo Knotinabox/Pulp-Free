@@ -12,6 +12,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [zip, setZip] = useState("V8W 1W5"); // Default Victoria full postal code
   const [radiusKm, setRadiusKm] = useState("50");
+  const [vehicleType, setVehicleType] = useState("");
+  const [budget, setBudget] = useState("");
   
   const [listings, setListings] = useState<CarListing[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +25,7 @@ export default function Home() {
     
     try {
       const radiusMiles = Math.round(parseInt(radiusKm) * 0.621371);
-      const res = await fetch(`/api/listings?zip=${zip}&radius=${radiusMiles}&q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`/api/listings?zip=${encodeURIComponent(zip)}&radius=${radiusMiles}&type=${encodeURIComponent(vehicleType)}&budget=${encodeURIComponent(budget)}&q=${encodeURIComponent(searchQuery)}`);
       const data = await res.json();
       
       if (data.error) {
@@ -87,6 +89,7 @@ export default function Home() {
           </p>
           
           <div className="relative max-w-3xl mx-auto space-y-4">
+            {/* Search Bar Row */}
             <div className="flex flex-col md:flex-row gap-4">
               <div className="relative flex-1">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -101,32 +104,59 @@ export default function Home() {
                   onKeyDown={(e) => e.key === 'Enter' && searchLocalMarket()}
                 />
               </div>
-              <div className="flex gap-4">
-                <input
-                  type="text"
-                  className="block w-36 px-4 py-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl text-center"
-                  placeholder="Postal Code"
-                  value={zip}
-                  onChange={(e) => setZip(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && searchLocalMarket()}
-                />
-                <select
-                  className="block w-32 px-4 py-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-lg text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none"
-                  value={radiusKm}
-                  onChange={(e) => setRadiusKm(e.target.value)}
-                >
-                  <option value="25">25 Km</option>
-                  <option value="50">50 Km</option>
-                  <option value="100">100 Km</option>
-                </select>
-                <button
-                  onClick={searchLocalMarket}
-                  disabled={isLoading}
-                  className="px-6 py-4 bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold rounded-2xl transition-all shadow-[0_0_20px_rgba(132,204,22,0.3)] disabled:opacity-50"
-                >
-                  {isLoading ? "Searching..." : "Search"}
-                </button>
-              </div>
+              <button
+                onClick={searchLocalMarket}
+                disabled={isLoading}
+                className="px-8 py-4 bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold text-lg rounded-2xl transition-all shadow-[0_0_20px_rgba(132,204,22,0.3)] disabled:opacity-50"
+              >
+                {isLoading ? "Searching..." : "Search Market"}
+              </button>
+            </div>
+
+            {/* Filters Row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <select
+                className="block w-full px-4 py-3.5 bg-zinc-900 border border-zinc-700 rounded-2xl text-sm md:text-base text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none"
+                value={vehicleType}
+                onChange={(e) => setVehicleType(e.target.value)}
+              >
+                <option value="">Any Type</option>
+                <option value="suv">SUV</option>
+                <option value="sedan">Sedan</option>
+                <option value="pickup">Truck</option>
+                <option value="hatchback">Hatchback</option>
+                <option value="coupe">Coupe</option>
+                <option value="minivan">Minivan</option>
+              </select>
+              <select
+                className="block w-full px-4 py-3.5 bg-zinc-900 border border-zinc-700 rounded-2xl text-sm md:text-base text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none"
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+              >
+                <option value="">Any Budget</option>
+                <option value="10000">Under $10k</option>
+                <option value="15000">Under $15k</option>
+                <option value="25000">Under $25k</option>
+                <option value="40000">Under $40k</option>
+                <option value="60000">Under $60k</option>
+              </select>
+              <input
+                type="text"
+                className="block w-full px-4 py-3.5 bg-zinc-900 border border-zinc-700 rounded-2xl text-sm md:text-base text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl text-center"
+                placeholder="Postal Code"
+                value={zip}
+                onChange={(e) => setZip(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && searchLocalMarket()}
+              />
+              <select
+                className="block w-full px-4 py-3.5 bg-zinc-900 border border-zinc-700 rounded-2xl text-sm md:text-base text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none text-center"
+                value={radiusKm}
+                onChange={(e) => setRadiusKm(e.target.value)}
+              >
+                <option value="25">25 Km</option>
+                <option value="50">50 Km</option>
+                <option value="100">100 Km</option>
+              </select>
             </div>
           </div>
         </div>

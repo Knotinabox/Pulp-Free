@@ -4,6 +4,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   let zip = searchParams.get('zip') || '78701';
   const radius = searchParams.get('radius') || '50';
+  const type = searchParams.get('type') || '';
+  const budget = searchParams.get('budget') || '';
   const query = searchParams.get('q') || '';
   
   // Clean zip/postal code
@@ -30,13 +32,19 @@ export async function GET(request: Request) {
   }
 
   try {
-    let url = `https://mc-api.marketcheck.com/v2/search/car/active?api_key=${apiKey}&zip=${zip}&radius=${radius}&car_type=used&rows=10`;
+    let url = `https://mc-api.marketcheck.com/v2/search/car/active?api_key=${apiKey}&zip=${encodeURIComponent(zip)}&radius=${radius}&car_type=used&rows=10`;
     
     if (make) {
       url += `&make=${encodeURIComponent(make)}`;
     }
     if (model) {
       url += `&model=${encodeURIComponent(model)}`;
+    }
+    if (type) {
+      url += `&body_type=${encodeURIComponent(type)}`;
+    }
+    if (budget) {
+      url += `&price=0-${encodeURIComponent(budget)}`;
     }
 
     const res = await fetch(url);
