@@ -132,7 +132,7 @@ export function ListingCard({ listing }: ListingCardProps) {
           <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-400 font-medium mt-2">
             <div className="flex items-center gap-1.5">
               <Car className="w-4 h-4 text-zinc-500" />
-              {listing.mileage.toLocaleString()} mi
+              {Math.round(listing.mileage * 1.60934).toLocaleString()} km
             </div>
             <div className="flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-zinc-500" />

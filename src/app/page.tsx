@@ -5,35 +5,48 @@ import Head from "next/head";
 import { Filter, Search, SearchX } from "lucide-react";
 import { ListingCard, CarListing } from "@/components/ListingCard";
 
-// Fallback initial feed data
-const initialListings: CarListing[] = [
-  { id: "1", year: 2017, make: "Honda", model: "CR-V", price: 18500, mileage: 72000, location: "Austin, TX", vin: "1HGCRV17XYZ", isLocal: true, score: 30 },
-  { id: "2", year: 2016, make: "Mazda", model: "CX-5", price: 15200, mileage: 85000, location: "Dallas, TX", vin: "JM3CX516XYZ", isLocal: false, score: 85 },
-  { id: "3", year: 2013, make: "Ford", model: "Focus", price: 7500, mileage: 110000, location: "Houston, TX", vin: "1FAFOCUS13X", isLocal: true, score: 15 },
-  { id: "4", year: 2019, make: "Toyota", model: "RAV4", price: 24000, mileage: 45000, location: "San Antonio, TX", vin: "2T3RAV419XY", isLocal: false, score: 75 },
-  { id: "5", year: 2021, make: "Subaru", model: "Outback", price: 27000, mileage: 32000, location: "Austin, TX", vin: "4S4OUT21XYZ", isLocal: true, score: 95 },
-];
+// We no longer use initial mock listings. We fetch live from Marketcheck.
 
 export default function Home() {
   const [isFilterActive, setIsFilterActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [zip, setZip] = useState("V8W 1W5"); // Default Victoria full postal code
+  const [radiusKm, setRadiusKm] = useState("50");
   
-  // Filter the listings based on Pulp Filter and Search Query
-  const displayedListings = initialListings.filter((listing) => {
-    // 1. Search Query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      const match = listing.make.toLowerCase().includes(query) || listing.model.toLowerCase().includes(query);
-      if (!match) return false;
-    }
+  const [listings, setListings] = useState<CarListing[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const searchLocalMarket = async () => {
+    setIsLoading(true);
+    setError("");
     
-    // 2. Pulp Filter
+    try {
+      const radiusMiles = Math.round(parseInt(radiusKm) * 0.621371);
+      const res = await fetch(`/api/listings?zip=${zip}&radius=${radiusMiles}&q=${encodeURIComponent(searchQuery)}`);
+      const data = await res.json();
+      
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setListings(data.listings || []);
+      }
+    } catch (err) {
+      setError("Failed to reach local market database.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Filter the live listings based on Pulp Filter only (search query is handled by API)
+  const displayedListings = listings.filter((listing) => {
+    // Pulp Filter
     if (isFilterActive) {
       if ((listing.score || 0) < 50) return false;
     }
-    
     return true;
   });
+
 
   return (
     <div className="min-h-screen bg-zinc-950 font-sans selection:bg-lime-500/30 selection:text-lime-200">
@@ -73,17 +86,48 @@ export default function Home() {
             Search by make or model. Our AI Master Mechanic will evaluate its history and generate a live Lemon-Aid score.
           </p>
           
-          <div className="relative max-w-2xl mx-auto">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-6 w-6 text-zinc-500" />
+          <div className="relative max-w-3xl mx-auto space-y-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Search className="h-6 w-6 text-zinc-500" />
+                </div>
+                <input
+                  type="text"
+                  className="block w-full pl-12 pr-4 py-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl"
+                  placeholder="e.g. Honda CR-V..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && searchLocalMarket()}
+                />
+              </div>
+              <div className="flex gap-4">
+                <input
+                  type="text"
+                  className="block w-36 px-4 py-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl text-center"
+                  placeholder="Postal Code"
+                  value={zip}
+                  onChange={(e) => setZip(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && searchLocalMarket()}
+                />
+                <select
+                  className="block w-32 px-4 py-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-lg text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none"
+                  value={radiusKm}
+                  onChange={(e) => setRadiusKm(e.target.value)}
+                >
+                  <option value="25">25 Km</option>
+                  <option value="50">50 Km</option>
+                  <option value="100">100 Km</option>
+                </select>
+                <button
+                  onClick={searchLocalMarket}
+                  disabled={isLoading}
+                  className="px-6 py-4 bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold rounded-2xl transition-all shadow-[0_0_20px_rgba(132,204,22,0.3)] disabled:opacity-50"
+                >
+                  {isLoading ? "Searching..." : "Search"}
+                </button>
+              </div>
             </div>
-            <input
-              type="text"
-              className="block w-full pl-12 pr-4 py-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl"
-              placeholder="e.g. Honda CR-V..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
           </div>
         </div>
       </section>
@@ -99,7 +143,19 @@ export default function Home() {
           </p>
         </div>
 
-        {displayedListings.length > 0 ? (
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-center font-medium">
+            {error}
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="text-center py-20 bg-zinc-900/30 rounded-2xl border border-zinc-800/50">
+            <div className="w-12 h-12 border-4 border-lime-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h3 className="text-xl font-bold text-white mb-2">Scanning Dealerships...</h3>
+            <p className="text-zinc-400">Fetching live inventory within {radiusKm} kilometers of {zip}.</p>
+          </div>
+        ) : displayedListings.length > 0 ? (
           <div className="space-y-6">
             {displayedListings.map((listing) => (
               <div 
@@ -117,9 +173,13 @@ export default function Home() {
         ) : (
           <div className="text-center py-20 bg-zinc-900/30 rounded-2xl border border-zinc-800/50">
             <SearchX className="mx-auto h-12 w-12 text-zinc-600 mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">No trusted cars found.</h3>
+            <h3 className="text-xl font-bold text-white mb-2">
+              {listings.length === 0 ? "No local listings found." : "No trusted cars found."}
+            </h3>
             <p className="text-zinc-400 max-w-md mx-auto">
-              We couldn't find any local listings matching "{searchQuery}" that pass the current filter criteria. Try adjusting your search or turning off the Pulp Filter.
+              {listings.length === 0 
+                ? `We couldn't find any inventory near ${zip}. Try increasing the search radius.`
+                : `No local listings matching your search pass the current filter criteria. Try turning off the Pulp Filter.`}
             </p>
           </div>
         )}
