@@ -41,6 +41,24 @@ interface ListingCardProps {
   onRemove?: () => void;
 }
 
+function ExpandableText({ text, maxLength = 150 }: { text: string; maxLength?: number }) {
+  const [expanded, setExpanded] = useState(false);
+  
+  if (!text) return <span>No summary available.</span>;
+  if (text.length <= maxLength) return <span>{text}</span>;
+  
+  return (
+    <span>
+      {expanded ? text : `${text.substring(0, maxLength).trim()}...`}
+      <button 
+        onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+        className="ml-2 text-[10px] font-black uppercase tracking-wider hover:text-white underline decoration-current underline-offset-2 opacity-70 hover:opacity-100 transition-opacity"
+      >
+        {expanded ? "Show less" : "Read more"}
+      </button>
+    </span>
+  );
+}
 export function ListingCard({ listing, initialIsSaved = false, onRemove }: ListingCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -49,10 +67,12 @@ export function ListingCard({ listing, initialIsSaved = false, onRemove }: Listi
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalImage(listing.image);
   }, [listing.image]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsSaved(initialIsSaved);
   }, [initialIsSaved]);
   
@@ -96,6 +116,7 @@ export function ListingCard({ listing, initialIsSaved = false, onRemove }: Listi
       const pendingDeepDive = sessionStorage.getItem('pendingDeepDive');
       if (pendingDeepDive === listing.vin) {
         sessionStorage.removeItem('pendingDeepDive');
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsExpanded(true);
         // We set a flag or just call the fetch directly
         setTimeout(() => {
@@ -214,7 +235,7 @@ export function ListingCard({ listing, initialIsSaved = false, onRemove }: Listi
     }
   }, [isExpanded, hasFetchedVin, isLoadingVin, hasFetchedAi, vinData, listing]);
 
-  const handleUnlockDeepDive = async (e: React.MouseEvent, autoTrigger = false) => {
+  async function handleUnlockDeepDive(e: React.MouseEvent, autoTrigger = false) {
     if (e && e.stopPropagation) e.stopPropagation();
     if (!session && !autoTrigger) {
       sessionStorage.setItem('pendingDeepDive', listing.vin);
@@ -595,7 +616,7 @@ export function ListingCard({ listing, initialIsSaved = false, onRemove }: Listi
                             {recalls.map((recall: any, idx: number) => (
                               <li key={idx} className="text-sm text-red-400 font-medium leading-relaxed">
                                 <span className="font-bold text-red-500 block mb-1">{recall.Component}</span>
-                                {recall.Summary ? recall.Summary : 'No summary available.'}
+                                <ExpandableText text={recall.Summary} />
                               </li>
                             ))}
                           </ul>
@@ -614,7 +635,7 @@ export function ListingCard({ listing, initialIsSaved = false, onRemove }: Listi
                             {tsbs.slice(0, 3).map((tsb: any, idx: number) => (
                               <li key={idx} className="text-sm text-orange-400 font-medium leading-relaxed">
                                 <span className="font-bold text-orange-500 block mb-1">{tsb.Component}</span>
-                                {tsb.Summary ? (tsb.Summary.length > 150 ? tsb.Summary.substring(0, 150) + '...' : tsb.Summary) : 'No summary available.'}
+                                <ExpandableText text={tsb.Summary} />
                               </li>
                             ))}
                           </ul>

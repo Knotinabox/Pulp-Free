@@ -41,6 +41,7 @@ export default function Home() {
         })
         .catch(console.error);
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSavedVins([]);
     }
   }, [status]);
@@ -125,6 +126,7 @@ export default function Home() {
 
   // Restore state on mount
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsClient(true);
     const savedState = sessionStorage.getItem('pulpFreeSearchState');
     if (savedState) {
@@ -164,11 +166,13 @@ export default function Home() {
           if (data && data.Results) {
             setModelsList(data.Results);
           } else {
-            setModelsList([]);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+      setModelsList([]);
           }
         })
         .catch(() => setModelsList([]));
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setModelsList([]);
       setModel("");
     }
@@ -198,11 +202,13 @@ export default function Home() {
       <header className="sticky top-0 z-50 w-full border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-4 md:px-6 py-4 md:h-28 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
           <div className="flex items-center w-full justify-center md:w-auto md:justify-start -ml-2 md:-ml-4">
-            <img 
-              src="/Pulp free.png" 
-              alt="PulpFree Logo" 
-              className="h-16 md:h-24 w-auto object-contain rounded-lg"
-            />
+            <Link href="/">
+              <img 
+                src="/Pulp free.png" 
+                alt="PulpFree Logo" 
+                className="h-16 md:h-24 w-auto object-contain rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+              />
+            </Link>
           </div>
           
           <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 w-full md:w-auto">
@@ -219,7 +225,11 @@ export default function Home() {
               <span className="sm:hidden">{isFilterActive ? "Filter: ON" : "Filter: OFF"}</span>
             </button>
             
-            {status === "authenticated" ? (
+            {!isClient || status === "loading" ? (
+              <div className="border-l border-zinc-800 pl-3 md:pl-4 w-8 md:w-12 flex justify-center">
+                <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin text-zinc-600" />
+              </div>
+            ) : status === "authenticated" ? (
               <div className="flex items-center gap-3 md:gap-4 border-l border-zinc-800 pl-3 md:pl-4">
                 <Link href="/garage" className="text-xs md:text-sm font-bold text-white hover:text-lime-500 transition-colors">
                   My Garage
@@ -228,7 +238,7 @@ export default function Home() {
                   Sign Out
                 </button>
               </div>
-            ) : status === "unauthenticated" ? (
+            ) : (
               <div className="border-l border-zinc-800 pl-3 md:pl-4">
                 <Link 
                   href="/login" 
@@ -238,10 +248,6 @@ export default function Home() {
                   <span className="hidden sm:inline">Sign In for Premium Features</span>
                   <span className="sm:hidden">Sign In</span>
                 </Link>
-              </div>
-            ) : (
-              <div className="border-l border-zinc-800 pl-3 md:pl-4 w-8 md:w-12 flex justify-center">
-                <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin text-zinc-600" />
               </div>
             )}
           </div>

@@ -13,17 +13,16 @@ export default function ScoreGauge({ score }: ScoreGaugeProps) {
     return () => clearTimeout(timeout);
   }, [score]);
 
-  // Determine colors based on inverted logic (0 = good, 100 = bad)
   let colorClass = "text-lime-500";
   let strokeClass = "stroke-lime-500";
   let dropShadow = "drop-shadow-[0_0_8px_rgba(132,204,22,0.6)]";
-  let label = "Low Pulp";
+  let label = "Pulp-Free";
 
   if (score > 80) {
     colorClass = "text-red-500";
     strokeClass = "stroke-red-500";
     dropShadow = "drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]";
-    label = "Lemon";
+    label = "Maximum Pulp";
   } else if (score > 60) {
     colorClass = "text-orange-500";
     strokeClass = "stroke-orange-500";
@@ -33,12 +32,12 @@ export default function ScoreGauge({ score }: ScoreGaugeProps) {
     colorClass = "text-amber-500";
     strokeClass = "stroke-amber-500";
     dropShadow = "drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]";
-    label = "Suspect";
+    label = "Moderate Pulp";
   } else if (score > 20) {
     colorClass = "text-yellow-500";
     strokeClass = "stroke-yellow-500";
     dropShadow = "drop-shadow-[0_0_8px_rgba(234,179,8,0.6)]";
-    label = "Moderate Pulp";
+    label = "Trace Pulp";
   }
 
   // SVG dimensions
