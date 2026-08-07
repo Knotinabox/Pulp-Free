@@ -161,6 +161,23 @@ export function ListingCard({ listing }: ListingCardProps) {
     }
   };
 
+  const currentScore = aiRecord?.score ?? listing.score;
+  let ctaText = "View Listing";
+  let ctaStyle = "bg-zinc-800 text-white hover:bg-zinc-700";
+
+  if (currentScore !== undefined) {
+    if (currentScore <= 40) {
+      ctaText = "Go to Dealership";
+      ctaStyle = "bg-lime-500 text-black hover:bg-lime-400 shadow-[0_0_15px_rgba(132,204,22,0.4)]";
+    } else if (currentScore <= 80) {
+      ctaText = "View (Review Recalls First)";
+      ctaStyle = "bg-orange-500 text-white hover:bg-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.4)]";
+    } else {
+      ctaText = "View at Your Own Risk";
+      ctaStyle = "bg-transparent border border-red-500/50 text-red-500 hover:bg-red-500/10";
+    }
+  }
+
   return (
     <div className={`w-full rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden transition-all duration-300 hover:border-zinc-700 ${isExpanded ? "ring-1 ring-zinc-700 shadow-xl shadow-black/50" : ""}`}>
       {/* Top Main Section */}
@@ -205,7 +222,7 @@ export function ListingCard({ listing }: ListingCardProps) {
           <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-400 font-medium mt-2">
             <div className="flex items-center gap-1.5">
               <Car className="w-4 h-4 text-zinc-500" />
-              {Math.round(listing.mileage * 1.60934).toLocaleString()} km
+              {Math.round(listing.mileage).toLocaleString()} km
             </div>
             <div className="flex items-center gap-1.5">
               <MapPin className="w-4 h-4 text-zinc-500" />
@@ -243,10 +260,10 @@ export function ListingCard({ listing }: ListingCardProps) {
                 href={listing.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-lime-500 hover:bg-lime-400 text-black text-xs font-bold uppercase tracking-wider rounded-lg transition-colors inline-flex items-center gap-2"
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all inline-flex items-center gap-2 ${ctaStyle}`}
                 onClick={(e) => e.stopPropagation()}
               >
-                View Listing <ExternalLink className="w-3.5 h-3.5" />
+                {ctaText} <ExternalLink className="w-3.5 h-3.5" />
               </a>
             )}
           </div>
