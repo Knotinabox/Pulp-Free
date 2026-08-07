@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ShieldCheck, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Car, MapPin, Loader2, Anchor, ExternalLink, Heart } from "lucide-react";
+import { ShieldCheck, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Car, MapPin, Loader2, Anchor, ExternalLink, Heart, Camera } from "lucide-react";
 import { decodeVIN, VINData, fetchRecalls, fetchTSBs } from "@/utils/nhtsa";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -44,6 +44,12 @@ export function ListingCard({ listing, initialIsSaved = false }: ListingCardProp
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isSaved, setIsSaved] = useState(initialIsSaved);
+  const [localImage, setLocalImage] = useState(listing.image);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  useEffect(() => {
+    setLocalImage(listing.image);
+  }, [listing.image]);
 
   useEffect(() => {
     setIsSaved(initialIsSaved);
@@ -276,6 +282,70 @@ export function ListingCard({ listing, initialIsSaved = false }: ListingCardProp
       setIsSaved(true);
     }
   };
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const MAX_DIM = 800; // Resize to max 800px
+
+          if (width > height) {
+            if (width > MAX_DIM) {
+              height *= MAX_DIM / width;
+              width = MAX_DIM;
+            }
+          } else {
+            if (height > MAX_DIM) {
+              width *= MAX_DIM / height;
+              height = MAX_DIM;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Export as JPEG with 0.7 quality
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handlePersonalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    try {
+      const compressedBase64 = await compressImage(file);
+      const res = await fetch("/api/garage/update-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vin: listing.vin, imageBase64: compressedBase64 })
+      });
+      if (res.ok) {
+        setLocalImage(compressedBase64);
+        setImageError(false);
+      } else {
+        alert("Failed to upload image.");
+      }
+    } catch (err) {
+      alert("Error compressing or uploading image.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   let ctaText = "Go to Dealership";
   let ctaStyle = "bg-zinc-800 text-white hover:bg-zinc-700";
@@ -299,20 +369,47 @@ export function ListingCard({ listing, initialIsSaved = false }: ListingCardProp
       <div className="p-5 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
         
         {/* Image Section */}
-        <div className="w-full md:w-48 h-32 shrink-0 rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900/80 flex flex-col items-center justify-center relative">
-          {listing.image && !imageError ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img 
-              src={listing.image} 
-              alt={`${listing.year} ${listing.make} ${listing.model}`}
-              className="absolute inset-0 w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-              onError={() => setImageError(true)}
-            />
+        <div className="w-full md:w-48 h-32 shrink-0 rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900/80 flex flex-col items-center justify-center relative group">
+          {localImage && !imageError ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={localImage} 
+                alt={`${listing.year} ${listing.make} ${listing.model}`}
+                className="absolute inset-0 w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+                onError={() => setImageError(true)}
+              />
+              {listing.location === "Personal Vehicle" && (
+                <div 
+                  className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-sm cursor-pointer z-10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <label htmlFor={`update-img-${listing.vin}`} className="cursor-pointer flex flex-col items-center text-lime-500 hover:text-lime-400">
+                    {isUploadingImage ? <Loader2 className="w-6 h-6 mb-1 animate-spin" /> : <Camera className="w-6 h-6 mb-1" />}
+                    <span className="text-[10px] font-bold">Update Photo</span>
+                  </label>
+                  <input type="file" id={`update-img-${listing.vin}`} accept="image/*" capture="environment" className="hidden" onChange={handlePersonalImageUpload} disabled={isUploadingImage} />
+                </div>
+              )}
+            </>
           ) : (
-            <div className="flex flex-col items-center justify-center text-zinc-500 p-2 text-center w-full h-full bg-zinc-900">
-              <Car className="w-8 h-8 mb-2 opacity-40" />
-              <span className="text-[10px] font-bold tracking-wider uppercase opacity-40">PulpFree:<br/>No Image Provided</span>
+            <div className="flex flex-col items-center justify-center text-zinc-500 p-2 text-center w-full h-full bg-zinc-900 relative">
+              <Car className="w-8 h-8 mb-2 opacity-40 transition-opacity" />
+              <span className="text-[10px] font-bold tracking-wider uppercase opacity-40 transition-opacity">PulpFree:<br/>No Image Provided</span>
+              
+              {listing.location === "Personal Vehicle" && (
+                <div 
+                  className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-sm cursor-pointer z-10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <label htmlFor={`upload-img-${listing.vin}`} className="cursor-pointer flex flex-col items-center text-lime-500 hover:text-lime-400">
+                    {isUploadingImage ? <Loader2 className="w-6 h-6 mb-1 animate-spin" /> : <Camera className="w-6 h-6 mb-1" />}
+                    <span className="text-[10px] font-bold">Add Photo</span>
+                  </label>
+                  <input type="file" id={`upload-img-${listing.vin}`} accept="image/*" capture="environment" className="hidden" onChange={handlePersonalImageUpload} disabled={isUploadingImage} />
+                </div>
+              )}
             </div>
           )}
         </div>
