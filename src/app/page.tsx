@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
-import { Filter, Search, SearchX } from "lucide-react";
+import { Filter, Search, SearchX, Loader2 } from "lucide-react";
 import { ListingCard, CarListing } from "@/components/ListingCard";
+import { useSession, signOut } from "next-auth/react";
+import Link from "next/link";
 
 // We no longer use initial mock listings. We fetch live from Marketcheck.
 
@@ -12,6 +14,7 @@ export default function Home() {
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [modelsList, setModelsList] = useState<{Model_Name: string}[]>([]);
+  const { status } = useSession();
   const [zip, setZip] = useState("V8W 1W5"); // Default Victoria full postal code
   const [radiusKm, setRadiusKm] = useState("50");
   const [vehicleType, setVehicleType] = useState("");
@@ -124,17 +127,40 @@ export default function Home() {
             />
           </div>
           
-          <button 
-            onClick={() => setIsFilterActive(!isFilterActive)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm transition-all duration-300 ${
-              isFilterActive 
-                ? "bg-lime-500 text-zinc-950 shadow-[0_0_20px_rgba(132,204,22,0.4)]" 
-                : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
-            }`}
-          >
-            <Filter className={`w-4 h-4 ${isFilterActive ? "text-zinc-950" : "text-zinc-500"}`} />
-            {isFilterActive ? "Pulp Filter: ON" : "Pulp Filter: OFF"}
-          </button>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsFilterActive(!isFilterActive)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm transition-all duration-300 ${
+                isFilterActive 
+                  ? "bg-lime-500 text-zinc-950 shadow-[0_0_20px_rgba(132,204,22,0.4)]" 
+                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
+              }`}
+            >
+              <Filter className={`w-4 h-4 ${isFilterActive ? "text-zinc-950" : "text-zinc-500"}`} />
+              {isFilterActive ? "Pulp Filter: ON" : "Pulp Filter: OFF"}
+            </button>
+            
+            {status === "authenticated" ? (
+              <div className="flex items-center gap-4 border-l border-zinc-800 pl-4">
+                <Link href="/garage" className="text-sm font-bold text-white hover:text-lime-500 transition-colors">
+                  My Garage
+                </Link>
+                <button onClick={() => signOut()} className="text-xs font-bold text-zinc-500 hover:text-zinc-300">
+                  Sign Out
+                </button>
+              </div>
+            ) : status === "unauthenticated" ? (
+              <div className="border-l border-zinc-800 pl-4">
+                <Link href="/login" className="text-sm font-bold text-lime-500 hover:text-lime-400 transition-colors">
+                  Sign In
+                </Link>
+              </div>
+            ) : (
+              <div className="border-l border-zinc-800 pl-4 w-12">
+                <Loader2 className="w-4 h-4 animate-spin text-zinc-600" />
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

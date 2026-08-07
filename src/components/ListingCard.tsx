@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ShieldCheck, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Car, MapPin, Loader2, Anchor, ExternalLink } from "lucide-react";
+import { ShieldCheck, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Car, MapPin, Loader2, Anchor, ExternalLink, Heart } from "lucide-react";
 import { decodeVIN, VINData } from "@/utils/nhtsa";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import ScoreGauge from "./ScoreGauge";
 
 export interface LemonRecord {
@@ -38,6 +40,10 @@ interface ListingCardProps {
 export function ListingCard({ listing }: ListingCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  
+  const { data: session } = useSession();
+  const router = useRouter();
   
   // Data States
   const [vinData, setVinData] = useState<VINData | null>(null);
@@ -162,6 +168,38 @@ export function ListingCard({ listing }: ListingCardProps) {
   };
 
   const currentScore = aiRecord?.score ?? listing.score;
+
+  const toggleSave = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+    
+    if (isSaved) {
+      await fetch(`/api/garage?vin=${listing.vin}`, { method: "DELETE" });
+      setIsSaved(false);
+    } else {
+      await fetch("/api/garage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vin: listing.vin,
+          year: listing.year,
+          make: listing.make,
+          model: listing.model,
+          price: listing.price,
+          mileage: listing.mileage,
+          location: listing.location,
+          image: listing.image,
+          url: listing.url,
+          score: currentScore,
+        })
+      });
+      setIsSaved(true);
+    }
+  };
+
   let ctaText = "View Listing";
   let ctaStyle = "bg-zinc-800 text-white hover:bg-zinc-700";
 
@@ -233,8 +271,16 @@ export function ListingCard({ listing }: ListingCardProps) {
         </div>
 
         {/* Price & Action */}
-        <div className="flex items-center justify-between w-full md:w-auto gap-6 md:gap-4">
-          <div className="text-right">
+        <div className="flex flex-col items-end justify-between w-full md:w-auto gap-4 h-full relative">
+          <button 
+            onClick={toggleSave}
+            className={`p-2 rounded-full transition-colors absolute top-0 right-0 md:static ${isSaved ? 'text-lime-500 bg-lime-500/10' : 'text-zinc-500 hover:text-white hover:bg-zinc-800'}`}
+            title="Save to Garage"
+          >
+            <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+          </button>
+          
+          <div className="text-right mt-10 md:mt-0">
             <div className="text-2xl font-black text-white tracking-tight">
               ${listing.price.toLocaleString()}
             </div>
