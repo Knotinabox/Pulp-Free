@@ -7,6 +7,11 @@ const VehicleAdviceSchema = new mongoose.Schema({
   score: { type: Number, required: true },
   defect: { type: String, required: true },
   advice: { type: String, required: true },
+  has_deep_dive: { type: Boolean, default: false },
+  deep_dive_maintenance: { type: String },
+  deep_dive_recalls: { type: String },
+  deep_dive_resale: { type: String },
+  deep_dive_competitors: { type: String },
   last_updated: { type: Date, default: Date.now }
 });
 

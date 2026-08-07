@@ -8,6 +8,11 @@ export interface LemonRecord {
   score: number; // 0-100
   defect: string;
   advice: string;
+  has_deep_dive?: boolean;
+  deep_dive_maintenance?: string;
+  deep_dive_recalls?: string;
+  deep_dive_resale?: string;
+  deep_dive_competitors?: string;
 }
 
 export interface CarListing {
@@ -39,6 +44,8 @@ export function ListingCard({ listing }: ListingCardProps) {
   const [aiRecord, setAiRecord] = useState<LemonRecord | null>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const [hasFetchedAi, setHasFetchedAi] = useState(false);
+  
+  const [isUnlockingDeepDive, setIsUnlockingDeepDive] = useState(false);
 
   // We use the AI record if generated, otherwise fallback to the pre-fetched cached score from the feed (if it exists)
   const activeScore = aiRecord ? aiRecord.score : listing.score;
@@ -97,25 +104,43 @@ export function ListingCard({ listing }: ListingCardProps) {
 
       // Fetch AI Score (only once)
       if (!hasFetchedAi) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setHasFetchedAi(true);
         setIsLoadingAi(true);
         fetch(`/api/lemon-score?year=${listing.year}&make=${listing.make}&model=${listing.model}`)
           .then(res => res.json())
           .then(data => {
-            if (!data.error) {
+            if (data.score !== undefined) {
               setAiRecord(data);
             } else {
               setAiRecord({ score: listing.score ?? 50, defect: "Error generating report.", advice: data.error || "Please try again." });
             }
-            setIsLoadingAi(false);
           })
           .catch(() => {
             setAiRecord({ score: listing.score ?? 50, defect: "API Request Failed.", advice: "Ensure you have an active internet connection." });
-            setIsLoadingAi(false);
-          });
+          })
+          .finally(() => setIsLoadingAi(false));
       }
     }
-  }, [isExpanded, listing, hasFetchedVin, hasFetchedAi]);
+  }, [isExpanded, hasFetchedVin, hasFetchedAi, listing]);
+
+  const handleUnlockDeepDive = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsUnlockingDeepDive(true);
+    try {
+      const res = await fetch(`/api/lemon-score-deep?year=${listing.year}&make=${listing.make}&model=${listing.model}`);
+      const data = await res.json();
+      if (res.ok) {
+        setAiRecord(data);
+      } else {
+        alert(data.error);
+      }
+    } catch (e) {
+      alert("Failed to unlock deep dive.");
+    } finally {
+      setIsUnlockingDeepDive(false);
+    }
+  };
 
   return (
     <div className={`w-full rounded-xl border border-zinc-800 bg-zinc-900/50 overflow-hidden transition-all duration-300 hover:border-zinc-700 ${isExpanded ? "ring-1 ring-zinc-700 shadow-xl shadow-black/50" : ""}`}>
@@ -231,9 +256,62 @@ export function ListingCard({ listing }: ListingCardProps) {
                 </div>
               </div>
             ) : (
-              <div className="text-sm text-red-400">Failed to load VIN specs.</div>
+              <div className="text-zinc-500 text-sm">No VIN data available.</div>
             )}
           </div>
+
+          {/* DEEP DIVE SECTION */}
+          {!isLoadingAi && aiRecord && (
+            <div className="mt-6 pt-6 border-t border-zinc-800/50">
+              {aiRecord.has_deep_dive ? (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <ShieldCheck className="w-5 h-5 text-indigo-400" />
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-indigo-400">Premium Deep Dive Report</h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                      <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Maintenance & Costs</p>
+                      <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_maintenance}</p>
+                    </div>
+                    
+                    <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                      <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Recalls & TSBs</p>
+                      <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_recalls}</p>
+                    </div>
+
+                    <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                      <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Resale Value Curve</p>
+                      <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_resale}</p>
+                    </div>
+
+                    <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                      <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Competitor Alternatives</p>
+                      <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_competitors}</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-6 bg-gradient-to-b from-indigo-950/20 to-transparent rounded-xl border border-indigo-900/30">
+                  <h4 className="text-indigo-400 font-bold mb-2">Want the full picture?</h4>
+                  <p className="text-zinc-400 text-sm mb-4 text-center max-w-md">Unlock the Master Mechanic Deep Dive to reveal detailed maintenance costs, recalls, resale value, and competitor alternatives.</p>
+                  <button 
+                    onClick={handleUnlockDeepDive}
+                    disabled={isUnlockingDeepDive}
+                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-bold rounded-full transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(79,70,229,0.3)]"
+                  >
+                    {isUnlockingDeepDive ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Unlocking...</>
+                    ) : (
+                      <>Unlock Deep Dive ($4.99)</>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
         </div>
       )}
     </div>
