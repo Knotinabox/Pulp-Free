@@ -309,7 +309,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                     {isUnlockingDeepDive ? (
                       <><Loader2 className="w-4 h-4 animate-spin" /> Unlocking...</>
                     ) : (
-                      <>Unlock Deep Dive ($4.99)</>
+                      <>Unlock Premium Deep Dive</>
                     )}
                   </button>
                 </div>
