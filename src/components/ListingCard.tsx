@@ -440,8 +440,15 @@ export function ListingCard({ listing }: ListingCardProps) {
             <div className="mt-6 pt-6 border-t border-zinc-800/50 flex items-center gap-2 text-zinc-500">
               <Loader2 className="w-4 h-4 animate-spin" /> Fetching live safety data...
             </div>
-          ) : (recalls.length > 0 || tsbs.length > 0) && (
+          ) : (
             <div className="mt-6 pt-6 border-t border-zinc-800/50 space-y-4">
+              {recalls.length === 0 && tsbs.length === 0 ? (
+                <div className="bg-lime-500/5 border border-lime-500/20 rounded-xl p-4 flex items-center gap-3">
+                  <ShieldCheck className="w-5 h-5 text-lime-500 shrink-0" />
+                  <p className="text-sm font-medium text-lime-400">No active safety recalls or major TSBs found for this vehicle.</p>
+                </div>
+              ) : (
+                <>
               {recalls.length > 0 && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-3">
@@ -479,8 +486,9 @@ export function ListingCard({ listing }: ListingCardProps) {
                   </ul>
                 </div>
               )}
-            </div>
-          )}
+              </>
+            )}
+          </div>
 
           {/* DEEP DIVE SECTION */}
           {!isLoadingAi && aiRecord && (
