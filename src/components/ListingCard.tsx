@@ -69,12 +69,20 @@ export function ListingCard({ listing }: ListingCardProps) {
         icon: <ShieldCheck className="w-5 h-5 text-lime-500" />,
         label: `Pulp Score: ${score}/100`,
       };
-    } else if (score <= 50) {
+    } else if (score <= 45) {
       return {
-        color: "text-yellow-500",
         bg: "bg-yellow-500/10",
+        color: "text-yellow-500",
         border: "border-yellow-500/20",
-        icon: <AlertTriangle className="w-5 h-5 text-yellow-500" />,
+        icon: <AlertTriangle className="w-4 h-4" />,
+        label: `Pulp Score: ${score}/100`,
+      };
+    } else if (score <= 75) {
+      return {
+        bg: "bg-orange-500/10",
+        color: "text-orange-500",
+        border: "border-orange-500/20",
+        icon: <AlertTriangle className="w-4 h-4" />,
         label: `Pulp Score: ${score}/100`,
       };
     } else {
