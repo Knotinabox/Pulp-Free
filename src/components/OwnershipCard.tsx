@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ShieldCheck, AlertTriangle, ShieldAlert, Loader2, Camera, Wrench, TrendingUp, Users, Leaf, Trash2 } from "lucide-react";
-import { fetchRecalls, fetchTSBs } from "@/utils/nhtsa";
+import { fetchRecalls, fetchTSBs, decodeVIN, VINData } from "@/utils/nhtsa";
 
 export interface LemonRecord {
   score?: number;
@@ -44,6 +44,8 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
 
   const [localImage, setLocalImage] = useState(car.image);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  const [vinData, setVinData] = useState<VINData | null>(null);
 
   const [isEditingMileage, setIsEditingMileage] = useState(false);
   const [localMileage, setLocalMileage] = useState(car.mileage || 0);
@@ -88,12 +90,22 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
     // Fetch deep dive data
     const fetchDeepDive = async () => {
       try {
+        let engineParam = '';
+        let decoded = vinData;
+        if (!decoded) {
+          decoded = await decodeVIN(car.vin);
+          setVinData(decoded);
+        }
+        if (decoded?.engineType) {
+          engineParam = `&engine=${encodeURIComponent(decoded.engineType)}`;
+        }
+
         // Ensure base lemon-score (defect/advice) is generated first
-        const baseRes = await fetch(`/api/lemon-score?year=${car.year}&make=${car.make}&model=${car.model}`);
+        const baseRes = await fetch(`/api/lemon-score?year=${car.year}&make=${car.make}&model=${car.model}${engineParam}`);
         const baseData = await baseRes.json();
         
         // Then fetch the premium deep dive data
-        const res = await fetch(`/api/lemon-score-deep?year=${car.year}&make=${car.make}&model=${car.model}`);
+        const res = await fetch(`/api/lemon-score-deep?year=${car.year}&make=${car.make}&model=${car.model}${engineParam}`);
         const data = await res.json();
         
         // Combine them if needed, but deep-dive endpoint returns all fields once they exist.
