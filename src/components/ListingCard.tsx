@@ -40,10 +40,19 @@ export function ListingCard({ listing }: ListingCardProps) {
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const [hasFetchedAi, setHasFetchedAi] = useState(false);
 
-  // We use the AI record if generated, otherwise fallback to listing.score or a default "Unknown" state until expanded.
-  const activeScore = aiRecord ? aiRecord.score : (listing.score ?? 50);
+  // We only show a score if the AI record has successfully generated it
+  const activeScore = aiRecord ? aiRecord.score : undefined;
 
-  const getScoreConfig = (score: number) => {
+  const getScoreConfig = (score: number | undefined) => {
+    if (score === undefined) {
+      return {
+        color: "text-zinc-400",
+        bg: "bg-zinc-800/50",
+        border: "border-zinc-700",
+        icon: <ShieldAlert className="w-5 h-5 text-zinc-400" />,
+        label: "AI Check Pending",
+      };
+    }
     if (score >= 80) {
       return {
         color: "text-lime-500",
