@@ -275,9 +275,6 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
                     <p className="text-zinc-300 text-sm leading-relaxed mb-2">
                       {aiRecord.defect}
                     </p>
-                    {aiRecord.advice && (
-                      <p className="text-sm font-semibold text-lime-400">💡 {aiRecord.advice}</p>
-                    )}
                   </div>
                 )}
 
