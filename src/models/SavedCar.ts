@@ -1,6 +1,6 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Model } from 'mongoose';
 
-export interface ISavedCar extends Document {
+export interface ISavedCar {
   userId: mongoose.Types.ObjectId;
   vin: string;
   year: number;
