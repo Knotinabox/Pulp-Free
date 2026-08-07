@@ -44,7 +44,7 @@ export async function GET(request: Request) {
       url += `&body_type=${encodeURIComponent(type)}`;
     }
     if (budget) {
-      url += `&price=0-${encodeURIComponent(budget)}`;
+      url += `&price_range=0-${encodeURIComponent(budget)}`;
     }
 
     const res = await fetch(url);
