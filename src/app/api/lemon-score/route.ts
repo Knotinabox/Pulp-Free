@@ -54,11 +54,16 @@ export async function GET(request: Request) {
     // 4. Cache Miss / Expired Logic
     const engineContext = engine !== 'Unknown' ? ` with the ${engine} engine` : '';
     const prompt = `You are an expert master mechanic, consumer advocate, and used car buyer's guide. Evaluate the ${year} ${make} ${model}${engineContext}. 
-Focus heavily on highly specific pre-purchase data. Identify if this model year represents a major generational shift (e.g., "switched to a new 1.5L turbo which had oil dilution issues"). 
+Focus heavily on highly specific pre-purchase data. Identify if this model year represents a major generational shift. 
 Highlight specific engine, transmission, or electrical flaws a buyer MUST look for during a test drive (pay special attention to flaws common to the ${engine} engine if specified).
-Give it a Pulp-Free reliability score from 0-100 (where 100 is perfectly reliable). 
+
+The Pulp Score: Your primary task is to calculate a 'Pulp Score' from 0 to 100. "Pulp" represents mechanical risk, known model-year defects, poor reliability, and general fluff.
+- 0 - 20 (Low Pulp): Highly reliable powertrains, excellent build quality, and low risk of major failure.
+- 21 - 50 (Moderate Pulp): Generally good, but has known quirks (e.g., minor transmission shudders, specific oil-burning issues) that a buyer must check.
+- 51 - 100 (High Pulp / Lemon): Notorious for catastrophic failures, extremely high maintenance costs, or major safety recalls.
+
 In the 'defect' field, describe these specific historical problems and generational quirks in detail (2-3 sentences). 
-In the 'advice' field, give clear, actionable buying advice (e.g., "Avoid the 1.5L turbo and look for the naturally aspirated 2.0L instead").`;
+In the 'advice' field, give clear, actionable buying advice.`;
 
     const modelObj = ai.getGenerativeModel({
       model: 'gemini-3.1-flash-lite',
