@@ -105,8 +105,8 @@ In the 'advice' field, give clear, actionable buying advice (e.g., "Avoid the 1.
     console.log(`[CACHE SAVED] Fresh data saved to MongoDB for ${year} ${make} ${model}`);
 
     return NextResponse.json(data);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in Lemon-Score API:', error);
-    return NextResponse.json({ error: 'Failed to generate Pulp-Free score' }, { status: 500 });
+    return NextResponse.json({ error: `Backend Error: ${error.message || 'Unknown'}` }, { status: 500 });
   }
 }
