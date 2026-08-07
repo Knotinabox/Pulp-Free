@@ -15,9 +15,10 @@ export async function GET(request: Request) {
   // Clean zip/postal code if it exists
   if (zip) {
     zip = zip.trim().toUpperCase();
-  // If user entered a 3-character Canadian FSA (e.g. "V8W"), pad it with "1A1" because Marketcheck requires 6 characters for Canada.
-  if (/^[A-Z]\d[A-Z]$/.test(zip)) {
-    zip += '1A1';
+    // If user entered a 3-character Canadian FSA (e.g. "V8W"), pad it with "1A1" because Marketcheck requires 6 characters for Canada.
+    if (/^[A-Z]\d[A-Z]$/.test(zip)) {
+      zip += '1A1';
+    }
   }
   
   const make = searchParams.get('make') || '';
