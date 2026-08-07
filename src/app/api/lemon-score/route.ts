@@ -58,7 +58,7 @@ In the 'defect' field, describe these specific historical problems and generatio
 In the 'advice' field, give clear, actionable buying advice (e.g., "Avoid the 1.5L turbo and look for the naturally aspirated 2.0L instead").`;
 
     const modelObj = ai.getGenerativeModel({
-      model: 'gemini-1.5-flash',
+      model: 'gemini-3.1-flash-lite',
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: {
