@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ShieldCheck, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Car, MapPin, Loader2, Anchor, ExternalLink, Heart, Camera, Trash2 } from "lucide-react";
+import { ShieldCheck, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Car, MapPin, Loader2, Anchor, ExternalLink, Heart, Camera, Trash2, Wrench, TrendingUp, Users, Leaf } from "lucide-react";
 import { decodeVIN, VINData, fetchRecalls, fetchTSBs } from "@/utils/nhtsa";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -647,24 +647,32 @@ export function ListingCard({ listing, initialIsSaved = false, onRemove }: Listi
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
-                      <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Maintenance & Costs</p>
+                    <div className="bg-blue-500/5 p-4 rounded-xl border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.05)] hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] transition-all">
+                      <p className="flex items-center text-[11px] text-blue-400 font-bold uppercase tracking-wider mb-3">
+                        <Wrench className="w-3.5 h-3.5 mr-1.5" /> Maintenance & Costs
+                      </p>
                       <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_maintenance}</p>
                     </div>
 
-                    <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
-                      <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Resale Value Curve</p>
+                    <div className="bg-emerald-500/5 p-4 rounded-xl border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.05)] hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] transition-all">
+                      <p className="flex items-center text-[11px] text-emerald-400 font-bold uppercase tracking-wider mb-3">
+                        <TrendingUp className="w-3.5 h-3.5 mr-1.5" /> Resale Value Curve
+                      </p>
                       <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_resale}</p>
                     </div>
 
-                    <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
-                      <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Competitor Alternatives</p>
+                    <div className="bg-purple-500/5 p-4 rounded-xl border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.05)] hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] transition-all">
+                      <p className="flex items-center text-[11px] text-purple-400 font-bold uppercase tracking-wider mb-3">
+                        <Users className="w-3.5 h-3.5 mr-1.5" /> Competitor Alternatives
+                      </p>
                       <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_competitors}</p>
                     </div>
 
                     {aiRecord.deep_dive_efficiency && (
-                      <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
-                        <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Real-World Efficiency</p>
+                      <div className="bg-cyan-500/5 p-4 rounded-xl border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.05)] hover:shadow-[0_0_20px_rgba(6,182,212,0.1)] transition-all">
+                        <p className="flex items-center text-[11px] text-cyan-400 font-bold uppercase tracking-wider mb-3">
+                          <Leaf className="w-3.5 h-3.5 mr-1.5" /> Real-World Efficiency
+                        </p>
                         <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_efficiency}</p>
                       </div>
                     )}
