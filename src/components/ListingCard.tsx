@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ShieldCheck, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Car, MapPin, Loader2, Anchor, ExternalLink, Heart } from "lucide-react";
-import { decodeVIN, VINData } from "@/utils/nhtsa";
+import { decodeVIN, VINData, fetchRecalls, fetchTSBs } from "@/utils/nhtsa";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import ScoreGauge from "./ScoreGauge";
@@ -47,8 +47,12 @@ export function ListingCard({ listing }: ListingCardProps) {
   
   // Data States
   const [vinData, setVinData] = useState<VINData | null>(null);
-  const [isLoadingVin, setIsLoadingVin] = useState(false);
   const [hasFetchedVin, setHasFetchedVin] = useState(false);
+  const [isLoadingVin, setIsLoadingVin] = useState(false);
+  
+  const [recalls, setRecalls] = useState<any[]>([]);
+  const [tsbs, setTsbs] = useState<any[]>([]);
+  const [isLoadingRecalls, setIsLoadingRecalls] = useState(false);
   
   const [aiRecord, setAiRecord] = useState<LemonRecord | null>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
@@ -119,9 +123,24 @@ export function ListingCard({ listing }: ListingCardProps) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasFetchedVin(true);
       setIsLoadingVin(true);
-      decodeVIN(listing.vin).then(data => {
+      setIsLoadingRecalls(true);
+      
+      decodeVIN(listing.vin).then(async data => {
         setVinData(data);
         setIsLoadingVin(false);
+        
+        try {
+          const [recallData, tsbData] = await Promise.all([
+            fetchRecalls(listing.vin),
+            data ? fetchTSBs(data.year, data.make, data.model) : Promise.resolve([])
+          ]);
+          setRecalls(recallData);
+          setTsbs(tsbData);
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setIsLoadingRecalls(false);
+        }
       });
     }
   }, [isExpanded, hasFetchedVin, listing.vin]);
@@ -150,6 +169,11 @@ export function ListingCard({ listing }: ListingCardProps) {
 
   const handleUnlockDeepDive = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+    
     setIsUnlockingDeepDive(true);
     try {
       const engineParam = vinData?.engineType ? `&engine=${encodeURIComponent(vinData.engineType)}` : '';
@@ -200,18 +224,18 @@ export function ListingCard({ listing }: ListingCardProps) {
     }
   };
 
-  let ctaText = "View Listing";
+  let ctaText = "Go to Dealership";
   let ctaStyle = "bg-zinc-800 text-white hover:bg-zinc-700";
 
   if (currentScore !== undefined) {
-    if (currentScore <= 40) {
+    if (currentScore >= 0 && currentScore <= 40) {
       ctaText = "Go to Dealership";
       ctaStyle = "bg-lime-500 text-black hover:bg-lime-400 shadow-[0_0_15px_rgba(132,204,22,0.4)]";
-    } else if (currentScore <= 80) {
-      ctaText = "View (Review Recalls First)";
-      ctaStyle = "bg-orange-500 text-white hover:bg-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.4)]";
-    } else {
-      ctaText = "View at Your Own Risk";
+    } else if (currentScore > 40 && currentScore <= 80) {
+      ctaText = "View at Dealership (Review Recalls)";
+      ctaStyle = "bg-orange-500 text-black hover:bg-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.4)]";
+    } else if (currentScore > 80) {
+      ctaText = "View at Dealership (Your Own Risk)";
       ctaStyle = "bg-transparent border border-red-500/50 text-red-500 hover:bg-red-500/10";
     }
   }
@@ -364,6 +388,53 @@ export function ListingCard({ listing }: ListingCardProps) {
             )}
           </div>
 
+          {/* RECALLS & TSBS SECTION */}
+          {isLoadingRecalls ? (
+            <div className="mt-6 pt-6 border-t border-zinc-800/50 flex items-center gap-2 text-zinc-500">
+              <Loader2 className="w-4 h-4 animate-spin" /> Fetching live safety data...
+            </div>
+          ) : (recalls.length > 0 || tsbs.length > 0) && (
+            <div className="mt-6 pt-6 border-t border-zinc-800/50 space-y-4">
+              {recalls.length > 0 && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <ShieldAlert className="w-5 h-5 text-red-500" />
+                    <h4 className="text-sm font-black text-red-500 uppercase tracking-wider">
+                      🚨 {recalls.length} OPEN SAFETY RECALL{recalls.length > 1 ? 'S' : ''} FOUND
+                    </h4>
+                  </div>
+                  <ul className="space-y-3">
+                    {recalls.map((recall: any, idx: number) => (
+                      <li key={idx} className="text-sm text-red-400 font-medium leading-relaxed">
+                        <span className="font-bold text-red-500 block mb-1">{recall.Component}</span>
+                        {recall.Summary ? recall.Summary : 'No summary available.'}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {tsbs.length > 0 && (
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle className="w-5 h-5 text-orange-500" />
+                    <h4 className="text-sm font-black text-orange-500 uppercase tracking-wider">
+                      Manufacturer Communications (TSBs)
+                    </h4>
+                  </div>
+                  <ul className="space-y-3">
+                    {tsbs.slice(0, 3).map((tsb: any, idx: number) => (
+                      <li key={idx} className="text-sm text-orange-400 font-medium leading-relaxed">
+                        <span className="font-bold text-orange-500 block mb-1">{tsb.Component}</span>
+                        {tsb.Summary ? (tsb.Summary.length > 150 ? tsb.Summary.substring(0, 150) + '...' : tsb.Summary) : 'No summary available.'}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* DEEP DIVE SECTION */}
           {!isLoadingAi && aiRecord && (
             <div className="mt-6 pt-6 border-t border-zinc-800/50">
@@ -378,11 +449,6 @@ export function ListingCard({ listing }: ListingCardProps) {
                     <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
                       <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Maintenance & Costs</p>
                       <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_maintenance}</p>
-                    </div>
-                    
-                    <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
-                      <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Recalls & TSBs</p>
-                      <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_recalls}</p>
                     </div>
 
                     <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
@@ -399,7 +465,7 @@ export function ListingCard({ listing }: ListingCardProps) {
               ) : (
                 <div className="flex flex-col items-center justify-center py-6 bg-gradient-to-b from-indigo-950/20 to-transparent rounded-xl border border-indigo-900/30">
                   <h4 className="text-indigo-400 font-bold mb-2">Want the full picture?</h4>
-                  <p className="text-zinc-400 text-sm mb-4 text-center max-w-md">Unlock the Master Mechanic Deep Dive to reveal detailed maintenance costs, recalls, resale value, and competitor alternatives.</p>
+                  <p className="text-zinc-400 text-sm mb-4 text-center max-w-md">Unlock the Master Mechanic Deep Dive to reveal detailed maintenance costs, resale value, and competitor alternatives.</p>
                   <button 
                     onClick={handleUnlockDeepDive}
                     disabled={isUnlockingDeepDive}
@@ -408,7 +474,7 @@ export function ListingCard({ listing }: ListingCardProps) {
                     {isUnlockingDeepDive ? (
                       <><Loader2 className="w-4 h-4 animate-spin" /> Unlocking...</>
                     ) : (
-                      <>Unlock Premium Deep Dive</>
+                      <>{session ? "Unlock Premium Deep Dive" : "Sign In to Unlock Deep Dive"}</>
                     )}
                   </button>
                 </div>

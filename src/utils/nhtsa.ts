@@ -60,3 +60,26 @@ export async function decodeVIN(vin: string): Promise<VINData | null> {
     return null;
   }
 }
+
+export async function fetchRecalls(vin: string) {
+  if (vin.length < 17) return [];
+  try {
+    const res = await fetch(`https://api.nhtsa.gov/recalls/recallsByVin?vin=${vin}&format=json`);
+    const data = await res.json();
+    return data.results || data.Results || [];
+  } catch (err) {
+    console.error("Error fetching recalls:", err);
+    return [];
+  }
+}
+
+export async function fetchTSBs(year: number | string, make: string, model: string) {
+  try {
+    const res = await fetch(`https://api.nhtsa.gov/recalls/recallsByVehicle?make=${make}&model=${model}&modelYear=${year}&format=json`);
+    const data = await res.json();
+    return data.results || data.Results || [];
+  } catch (err) {
+    console.error("Error fetching TSBs:", err);
+    return [];
+  }
+}

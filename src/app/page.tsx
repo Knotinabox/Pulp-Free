@@ -68,13 +68,19 @@ export default function Home() {
     }
   };
 
-  // Re-run search automatically if sort option changes
+  // Re-run search automatically if search parameters change
   useEffect(() => {
-    if (listings.length > 0) {
+    const delayDebounceFn = setTimeout(() => {
+      // Don't auto-search if make is selected but the user is probably about to pick a model
+      // But if they just change anything else, let's search.
+      // To prevent an empty initial search spam, we only auto-search if at least one parameter is set 
+      // or if we already have listings.
       searchLocalMarket(false);
-    }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortOption]);
+  }, [sortOption, make, model, zip, radiusKm, vehicleType, budget, fuelType]);
 
   useEffect(() => {
     if (make) {
