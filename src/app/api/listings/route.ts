@@ -69,7 +69,7 @@ export async function GET(request: Request) {
     try {
       await connectToDatabase();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const uniqueModels = Array.from(new Set(listings.map((l: any) => `${l.year}|${l.make}|${l.model}`)));
+      const uniqueModels = Array.from(new Set(listings.map((l: any) => `${l.year}|${l.make}|${l.model}`))) as string[];
       const queries = uniqueModels.map(key => {
         const [yearStr, make, model] = key.split('|');
         return { year: parseInt(yearStr, 10), make, model };
