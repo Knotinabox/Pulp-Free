@@ -60,7 +60,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET || "super_secret_pulp_free_123_fallback_for_prototype",
-});
+};
 
 const handler = NextAuth(authOptions);
 
