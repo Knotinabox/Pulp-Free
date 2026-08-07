@@ -44,6 +44,7 @@ export async function GET(request: Request) {
         defect: cachedAdvice.defect,
         advice: cachedAdvice.advice,
         has_deep_dive: true,
+        deep_dive_test_drive: cachedAdvice.deep_dive_test_drive,
         deep_dive_maintenance: cachedAdvice.deep_dive_maintenance,
         deep_dive_recalls: cachedAdvice.deep_dive_recalls,
         deep_dive_resale: cachedAdvice.deep_dive_resale,
@@ -60,8 +61,8 @@ You must provide exactly four detailed paragraphs/sections as defined below (pay
 Do not use markdown formatting inside the JSON strings.
 IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead of miles, L/100km instead of MPG).
 
-1. Maintenance: Describe the expected maintenance schedule, specific costly repairs to anticipate (e.g., timing belt at 100k, expensive fluid flushes), and estimated annualized repair costs.
-2. Recalls: List any major Technical Service Bulletins (TSBs) and safety recalls that a buyer MUST check the VIN against.
+1. Test Drive Checklist: What specific noises, feels, or common failure points a buyer MUST check for during a test drive or visual inspection.
+2. Maintenance: Describe the expected maintenance schedule, specific costly repairs to anticipate (e.g., timing belt at 100k, expensive fluid flushes), and estimated annualized repair costs.
 3. Resale: Analyze how this specific model year holds its value compared to class competitors over the next 5 years (depreciation curve).
 4. Competitors: Suggest 2-3 specific competitor vehicles a buyer should also test drive if they are considering this car, and explain why.`;
 
@@ -72,13 +73,13 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
         responseSchema: {
           type: SchemaType.OBJECT,
           properties: {
+            test_drive: {
+              type: SchemaType.STRING,
+              description: "Specific noises, feels, and common failure points to check during a test drive.",
+            },
             maintenance: {
               type: SchemaType.STRING,
               description: "Detailed expected maintenance schedule and costly repairs to anticipate.",
-            },
-            recalls: {
-              type: SchemaType.STRING,
-              description: "Major TSBs and safety recalls to check for.",
             },
             resale: {
               type: SchemaType.STRING,
@@ -89,7 +90,7 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
               description: "Competitor vehicles to cross-shop and why.",
             },
           },
-          required: ["maintenance", "recalls", "resale", "competitors"],
+          required: ["test_drive", "maintenance", "resale", "competitors"],
         },
       }
     });
@@ -109,8 +110,9 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
     const updatePayload = {
       $set: {
         has_deep_dive: true,
+        deep_dive_test_drive: data.test_drive,
         deep_dive_maintenance: data.maintenance,
-        deep_dive_recalls: data.recalls,
+        deep_dive_recalls: data.recalls || "N/A",
         deep_dive_resale: data.resale,
         deep_dive_competitors: data.competitors,
         last_updated: new Date()
@@ -135,6 +137,7 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
       defect: updatedDoc.defect,
       advice: updatedDoc.advice,
       has_deep_dive: true,
+      deep_dive_test_drive: updatedDoc.deep_dive_test_drive,
       deep_dive_maintenance: updatedDoc.deep_dive_maintenance,
       deep_dive_recalls: updatedDoc.deep_dive_recalls,
       deep_dive_resale: updatedDoc.deep_dive_resale,

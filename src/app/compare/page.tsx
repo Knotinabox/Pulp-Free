@@ -139,6 +139,14 @@ function CompareContent() {
                 ))}
               </tr>
               <tr>
+                <td className="p-4 font-bold text-zinc-400 uppercase text-xs tracking-wider sticky left-0 bg-zinc-950 z-20 text-indigo-400">Test Drive Checklist</td>
+                {cars.map(car => (
+                  <td key={car.vin} className="p-4 text-zinc-200 text-sm leading-relaxed align-top bg-indigo-500/5">
+                    {deepDives[car.vin]?.deep_dive_test_drive || "Loading deep dive..."}
+                  </td>
+                ))}
+              </tr>
+              <tr>
                 <td className="p-4 font-bold text-zinc-400 uppercase text-xs tracking-wider sticky left-0 bg-zinc-950 z-20">Expected Maintenance</td>
                 {cars.map(car => (
                   <td key={car.vin} className="p-4 text-zinc-300 text-sm leading-relaxed align-top">

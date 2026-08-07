@@ -11,6 +11,7 @@ const VehicleAdviceSchema = new mongoose.Schema({
   has_deep_dive: { type: Boolean, default: false },
   deep_dive_maintenance: { type: String },
   deep_dive_recalls: { type: String },
+  deep_dive_test_drive: { type: String },
   deep_dive_resale: { type: String },
   deep_dive_competitors: { type: String },
   last_updated: { type: Date, default: Date.now }

@@ -8,12 +8,12 @@ import { useRouter } from "next/navigation";
 import ScoreGauge from "./ScoreGauge";
 
 export interface LemonRecord {
-  score: number; // 0-100
-  defect: string;
-  advice: string;
+  score?: number;
+  defect?: string;
+  advice?: string;
   has_deep_dive?: boolean;
+  deep_dive_test_drive?: string;
   deep_dive_maintenance?: string;
-  deep_dive_recalls?: string;
   deep_dive_resale?: string;
   deep_dive_competitors?: string;
 }
@@ -444,6 +444,13 @@ export function ListingCard({ listing }: ListingCardProps) {
                     <ShieldCheck className="w-5 h-5 text-indigo-400" />
                     <h4 className="text-sm font-bold uppercase tracking-wider text-indigo-400">Premium Deep Dive Report</h4>
                   </div>
+                  
+                  {aiRecord.deep_dive_test_drive && (
+                    <div className="bg-indigo-500/10 p-5 rounded-xl border border-indigo-500/30 mb-6">
+                      <p className="text-xs text-indigo-400 font-black uppercase tracking-wider mb-2">Test Drive Checklist</p>
+                      <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_test_drive}</p>
+                    </div>
+                  )}
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
