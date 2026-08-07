@@ -195,7 +195,6 @@ export default function Home() {
                 <option value="50">50 Km</option>
                 <option value="100">100 Km</option>
                 <option value="160">160 Km</option>
-                <option value="250">250 Km</option>
               </select>
             </div>
           </div>
