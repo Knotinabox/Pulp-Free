@@ -5,16 +5,8 @@ import { ShieldCheck, AlertTriangle, ShieldAlert, Loader2, Camera, Wrench, Trend
 import { fetchRecalls, fetchTSBs, decodeVIN, VINData } from "@/utils/nhtsa";
 
 export interface LemonRecord {
-  score?: number;
-  defect?: string;
-  advice?: string;
-  has_deep_dive?: boolean;
-  deep_dive_test_drive?: string;
-  deep_dive_maintenance?: string;
-  deep_dive_recalls?: string;
-  deep_dive_resale?: string;
-  deep_dive_competitors?: string;
-  deep_dive_efficiency?: string;
+  quirks?: string;
+  maintenance?: string;
 }
 
 function ExpandableText({ text, maxLength = 150 }: { text: string; maxLength?: number }) {
@@ -100,19 +92,12 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
           engineParam = `&engine=${encodeURIComponent(decoded.engineType)}`;
         }
 
-        // Ensure base lemon-score (defect/advice) is generated first
-        const baseRes = await fetch(`/api/lemon-score?year=${car.year}&make=${car.make}&model=${car.model}${engineParam}`);
-        const baseData = await baseRes.json();
-        
-        // Then fetch the premium deep dive data
-        const res = await fetch(`/api/lemon-score-deep?year=${car.year}&make=${car.make}&model=${car.model}${engineParam}`);
+        // Fetch ownership insights
+        const res = await fetch(`/api/garage/insights?year=${car.year}&make=${car.make}&model=${car.model}${engineParam}`);
         const data = await res.json();
         
-        // Combine them if needed, but deep-dive endpoint returns all fields once they exist.
-        if (data.score !== undefined) {
-          setAiRecord({ ...baseData, ...data });
-        } else if (baseData.score !== undefined) {
-          setAiRecord(baseData);
+        if (data.quirks && data.maintenance) {
+          setAiRecord(data);
         }
       } catch (e) {
         console.error(e);
@@ -272,20 +257,20 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
               <div className="flex items-center gap-2 text-zinc-500 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Analyzing vehicle history...</div>
             ) : aiRecord ? (
               <div className="grid grid-cols-1 gap-4">
-                {aiRecord.defect && (
-                  <div className="bg-zinc-800/30 p-4 rounded-xl border border-zinc-700/50">
-                    <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1">Common Quirks</p>
-                    <p className="text-zinc-300 text-sm">{aiRecord.defect}</p>
-                    {aiRecord.advice && <p className="text-lime-400 text-sm font-medium mt-2">💡 {aiRecord.advice}</p>}
-                  </div>
-                )}
-                
-                {aiRecord.deep_dive_maintenance && (
-                  <div className="bg-blue-500/5 p-4 rounded-xl border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.05)]">
-                    <p className="text-xs text-blue-400 font-bold uppercase tracking-wider mb-2">Expected Maintenance</p>
-                    <p className="text-zinc-200 text-sm leading-relaxed">{aiRecord.deep_dive_maintenance}</p>
-                  </div>
-                )}
+                <div className="bg-zinc-800/30 p-4 rounded-xl border border-zinc-700/50">
+                  <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1">Common Quirks</p>
+                  <p className="text-zinc-300 text-sm leading-relaxed mb-3">
+                    {aiRecord?.quirks || "Detailed defect analysis pending."}
+                  </p>
+                </div>
+
+                {/* Maintenance */}
+                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                  <h4 className="text-xs font-black text-blue-500 tracking-wider mb-3 uppercase">Expected Maintenance</h4>
+                  <p className="text-zinc-300 text-sm leading-relaxed">
+                    {aiRecord?.maintenance || "Detailed maintenance schedule pending."}
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="text-zinc-500 text-sm">Failed to load insights.</div>
