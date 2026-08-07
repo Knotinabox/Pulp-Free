@@ -10,17 +10,10 @@ export async function GET() {
       await mongoose.connect(MONGODB_URI);
     }
     
-    // Attempt to drop the old index
-    try {
-      await VehicleAdvice.collection.dropIndex("year_1_make_1_model_1");
-    } catch (e: any) {
-      console.log("Index might not exist or already dropped:", e.message);
-    }
-    
-    // Sync to create the new one defined in the schema
-    await VehicleAdvice.syncIndexes();
+    // Wipe the entire vehicle advices collection
+    const result = await VehicleAdvice.deleteMany({});
 
-    return NextResponse.json({ success: true, message: "Index dropped and synced successfully" });
+    return NextResponse.json({ success: true, message: `Database wiped successfully. Deleted ${result.deletedCount} documents.` });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
