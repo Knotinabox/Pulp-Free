@@ -339,7 +339,7 @@ export function ListingCard({ listing }: ListingCardProps) {
           </div>
           
           {!isLoadingAi && aiRecord && (
-            <ScoreGauge score={aiRecord.score} />
+            <ScoreGauge score={aiRecord.score ?? listing.score ?? 50} />
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
