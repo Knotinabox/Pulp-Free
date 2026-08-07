@@ -34,12 +34,25 @@ export async function decodeVIN(vin: string): Promise<VINData | null> {
       return item?.Value && item.Value !== "Not Applicable" ? item.Value : "Unknown";
     };
 
-    // Note: NHTSA has very specific variable names
+    // Build a highly specific engine string
+    const disp = extractValue("Displacement (L)");
+    const config = extractValue("Engine Configuration");
+    const cyl = extractValue("Engine Number of Cylinders");
+    const turbo = extractValue("Turbo");
+
+    let engineStr = "";
+    if (disp !== "Unknown") engineStr += `${disp}L `;
+    if (config !== "Unknown") engineStr += `${config} `;
+    if (cyl !== "Unknown") engineStr += `${cyl} Cyl`;
+    if (turbo === "Yes") engineStr += " Turbo";
+    
+    if (!engineStr.trim()) engineStr = "Unknown Engine";
+
     return {
       make: extractValue("Make"),
       model: extractValue("Model"),
       year: extractValue("Model Year"),
-      engineType: extractValue("Engine Configuration") + " " + extractValue("Engine Number of Cylinders") + " Cyl", // Often fragmented in NHTSA
+      engineType: engineStr.trim(),
       plant: extractValue("Plant City") + ", " + extractValue("Plant Country"),
     };
   } catch (error) {
