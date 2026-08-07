@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowRight, Camera, Plus } from "lucide-react";
+import { Loader2, ArrowRight, Camera, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { ListingCard } from "@/components/ListingCard";
 
@@ -53,6 +53,21 @@ export default function GaragePage() {
     if (selectedVins.size < 2) return;
     const vinsParam = Array.from(selectedVins).join(",");
     router.push(`/compare?vins=${vinsParam}`);
+  };
+
+  const handleDelete = async (vin: string) => {
+    if (!confirm("Are you sure you want to remove this car from your garage?")) return;
+    try {
+      const res = await fetch(`/api/garage?vin=${vin}`, { method: 'DELETE' });
+      if (res.ok) {
+        setSavedCars(prev => prev.filter(c => c.vin !== vin));
+        const newSet = new Set(selectedVins);
+        newSet.delete(vin);
+        setSelectedVins(newSet);
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleAddVin = async () => {
@@ -193,12 +208,20 @@ export default function GaragePage() {
               const isSelected = selectedVins.has(car.vin);
               return (
                 <div key={car.vin} className={`relative rounded-xl border-2 transition-all ${isSelected ? 'border-lime-500 shadow-[0_0_20px_rgba(132,204,22,0.2)]' : 'border-transparent'}`}>
-                  <div className="absolute top-4 left-4 z-10">
+                  <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
                     <button
                       onClick={() => toggleSelection(car.vin)}
-                      className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-lime-500 border-lime-500' : 'bg-zinc-900 border-zinc-600 hover:border-lime-500'}`}
+                      className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors shadow-lg ${isSelected ? 'bg-lime-500 border-lime-500' : 'bg-zinc-900 border-zinc-600 hover:border-lime-500'}`}
+                      title={isSelected ? "Deselect for comparison" : "Select for comparison"}
                     >
                       {isSelected && <svg className="w-4 h-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(car.vin)}
+                      className="w-6 h-6 rounded border-2 border-zinc-700 bg-zinc-900 flex items-center justify-center hover:border-red-500 hover:text-red-500 text-zinc-500 transition-colors shadow-lg"
+                      title="Remove from garage"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                   <div className={isSelected ? 'opacity-100' : 'opacity-70 hover:opacity-100 transition-opacity'}>

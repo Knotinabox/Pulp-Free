@@ -26,6 +26,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Car already in garage" }, { status: 400 });
     }
 
+    // Check garage limit
+    const count = await SavedCar.countDocuments({ userId: (session.user as any).id });
+    if (count >= 10) {
+      return NextResponse.json({ error: "Garage full (Max 10 cars)" }, { status: 400 });
+    }
+
     // Decode the VIN
     const decoded = await decodeVIN(vin);
     
