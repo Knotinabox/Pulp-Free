@@ -45,6 +45,26 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
   const [localImage, setLocalImage] = useState(car.image);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  const [isEditingMileage, setIsEditingMileage] = useState(false);
+  const [localMileage, setLocalMileage] = useState(car.mileage || 0);
+  const [mileageInput, setMileageInput] = useState(car.mileage?.toString() || "");
+
+  const handleMileageUpdate = async () => {
+    try {
+      const res = await fetch("/api/garage/update-mileage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vin: car.vin, mileage: mileageInput })
+      });
+      if (res.ok) {
+        setLocalMileage(Number(mileageInput));
+        setIsEditingMileage(false);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
     // Fetch safety data (NHTSA)
     const loadSafety = async () => {
@@ -68,20 +88,11 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
     // Fetch deep dive data
     const fetchDeepDive = async () => {
       try {
-        const res = await fetch("/api/lemon-score-deep", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            vin: car.vin,
-            year: car.year,
-            make: car.make,
-            model: car.model,
-            price: car.price || 0,
-            mileage: car.mileage || 0
-          })
-        });
+        const res = await fetch(`/api/lemon-score-deep?year=${car.year}&make=${car.make}&model=${car.model}`);
         const data = await res.json();
-        setAiRecord(data.scoreData);
+        if (data.score !== undefined) {
+          setAiRecord(data);
+        }
       } catch (e) {
         console.error(e);
       } finally {
@@ -158,9 +169,27 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
           <h2 className="text-2xl font-black text-white">{car.year} {car.make} {car.model}</h2>
           <div className="text-zinc-400 font-mono text-sm mt-1">{car.vin}</div>
           <div className="flex gap-4 mt-3">
-            <span className="px-3 py-1 bg-zinc-800 rounded-md text-sm font-bold text-zinc-300">
-              {car.mileage ? `${car.mileage.toLocaleString()} km` : "Mileage Unknown"}
-            </span>
+            {isEditingMileage ? (
+              <div className="flex items-center gap-2">
+                <input 
+                  type="number"
+                  value={mileageInput}
+                  onChange={(e) => setMileageInput(e.target.value)}
+                  className="bg-zinc-950 border border-zinc-700 rounded-md px-3 py-1 text-sm text-white font-mono w-32 focus:outline-none focus:border-lime-500"
+                  placeholder="e.g. 150000"
+                />
+                <button onClick={handleMileageUpdate} className="px-3 py-1 bg-lime-500 text-black font-bold text-sm rounded-md hover:bg-lime-400">Save</button>
+                <button onClick={() => setIsEditingMileage(false)} className="px-3 py-1 bg-zinc-800 text-zinc-400 font-bold text-sm rounded-md hover:text-white">Cancel</button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setIsEditingMileage(true)}
+                className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm font-bold text-zinc-300 transition-colors group relative"
+              >
+                {localMileage ? `${localMileage.toLocaleString()} km` : "Add Mileage"}
+                <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity pointer-events-none">Click to edit</span>
+              </button>
+            )}
           </div>
         </div>
 
