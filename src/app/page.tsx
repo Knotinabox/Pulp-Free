@@ -28,6 +28,20 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [error, setError] = useState("");
+  const [savedVins, setSavedVins] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetch("/api/garage")
+        .then(res => res.json())
+        .then(data => {
+          if (data.cars) setSavedVins(data.cars.map((c: any) => c.vin));
+        })
+        .catch(console.error);
+    } else {
+      setSavedVins([]);
+    }
+  }, [status]);
 
   const searchLocalMarket = async (isLoadMore = false) => {
     if (isLoadMore) setIsFetchingMore(true);
@@ -363,7 +377,7 @@ export default function Home() {
                       : ""
                   }`}
                 >
-                  <ListingCard listing={listing} />
+                  <ListingCard listing={listing} initialIsSaved={savedVins.includes(listing.vin)} />
                 </div>
               ))}
             </div>

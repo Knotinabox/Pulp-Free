@@ -37,12 +37,17 @@ export interface CarListing {
 
 interface ListingCardProps {
   listing: CarListing;
+  initialIsSaved?: boolean;
 }
 
-export function ListingCard({ listing }: ListingCardProps) {
+export function ListingCard({ listing, initialIsSaved = false }: ListingCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
+  const [isSaved, setIsSaved] = useState(initialIsSaved);
+
+  useEffect(() => {
+    setIsSaved(initialIsSaved);
+  }, [initialIsSaved]);
   
   const { data: session } = useSession();
   const router = useRouter();
