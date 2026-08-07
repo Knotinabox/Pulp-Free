@@ -17,7 +17,7 @@ const VehicleAdviceSchema = new mongoose.Schema({
 });
 
 // Create a compound unique index for fast lookups
-VehicleAdviceSchema.index({ year: 1, make: 1, model: 1 }, { unique: true });
+VehicleAdviceSchema.index({ year: 1, make: 1, model: 1, engine: 1 }, { unique: true });
 
 // Prevent mongoose from compiling the model multiple times in serverless environments
 const VehicleAdvice = mongoose.models.VehicleAdvice || mongoose.model('VehicleAdvice', VehicleAdviceSchema);
