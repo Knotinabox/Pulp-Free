@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ShieldCheck, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Car, MapPin, Loader2, Anchor, ExternalLink, Heart, Camera } from "lucide-react";
+import { ShieldCheck, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Car, MapPin, Loader2, Anchor, ExternalLink, Heart, Camera, Trash2 } from "lucide-react";
 import { decodeVIN, VINData, fetchRecalls, fetchTSBs } from "@/utils/nhtsa";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -38,9 +38,10 @@ export interface CarListing {
 interface ListingCardProps {
   listing: CarListing;
   initialIsSaved?: boolean;
+  onRemove?: () => void;
 }
 
-export function ListingCard({ listing, initialIsSaved = false }: ListingCardProps) {
+export function ListingCard({ listing, initialIsSaved = false, onRemove }: ListingCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isSaved, setIsSaved] = useState(initialIsSaved);
@@ -447,13 +448,24 @@ export function ListingCard({ listing, initialIsSaved = false }: ListingCardProp
 
         {/* Price & Action */}
         <div className="flex flex-col items-end justify-between w-full md:w-auto gap-4 h-full relative">
-          <button 
-            onClick={toggleSave}
-            className={`p-2 rounded-full transition-colors absolute top-0 right-0 md:static ${isSaved ? 'text-lime-500 bg-lime-500/10' : 'text-zinc-500 hover:text-white hover:bg-zinc-800'}`}
-            title="Save to Garage"
-          >
-            <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
-          </button>
+          <div className="absolute top-0 right-0 md:static flex gap-2">
+            {onRemove && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                className="p-2 rounded-full transition-colors text-zinc-500 hover:text-red-500 hover:bg-zinc-800"
+                title="Remove from Garage"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
+            <button 
+              onClick={toggleSave}
+              className={`p-2 rounded-full transition-colors ${isSaved ? 'text-lime-500 bg-lime-500/10' : 'text-zinc-500 hover:text-white hover:bg-zinc-800'}`}
+              title="Save to Garage"
+            >
+              <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+            </button>
+          </div>
           
           <div className="text-right mt-10 md:mt-0">
             <div className="text-2xl font-black text-white tracking-tight">

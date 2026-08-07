@@ -208,7 +208,7 @@ export default function GaragePage() {
               const isSelected = selectedVins.has(car.vin);
               return (
                 <div key={car.vin} className={`relative rounded-xl border-2 transition-all ${isSelected ? 'border-lime-500 shadow-[0_0_20px_rgba(132,204,22,0.2)]' : 'border-transparent'}`}>
-                  <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                  <div className="absolute top-4 left-4 z-10">
                     <button
                       onClick={() => toggleSelection(car.vin)}
                       className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors shadow-lg ${isSelected ? 'bg-lime-500 border-lime-500' : 'bg-zinc-900 border-zinc-600 hover:border-lime-500'}`}
@@ -216,29 +216,26 @@ export default function GaragePage() {
                     >
                       {isSelected && <svg className="w-4 h-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                     </button>
-                    <button
-                      onClick={() => handleDelete(car.vin)}
-                      className="w-6 h-6 rounded border-2 border-zinc-700 bg-zinc-900 flex items-center justify-center hover:border-red-500 hover:text-red-500 text-zinc-500 transition-colors shadow-lg"
-                      title="Remove from garage"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
                   </div>
                   <div className={isSelected ? 'opacity-100' : 'opacity-70 hover:opacity-100 transition-opacity'}>
-                    <ListingCard listing={{
-                      id: car._id,
-                      year: car.year,
-                      make: car.make,
-                      model: car.model,
-                      price: car.price,
-                      mileage: car.mileage,
-                      location: car.location,
-                      vin: car.vin,
-                      image: car.image,
-                      url: car.url,
-                      score: car.score,
-                      isLocal: false
-                    }} />
+                    <ListingCard 
+                      initialIsSaved={true}
+                      onRemove={() => handleDelete(car.vin)}
+                      listing={{
+                        id: car._id,
+                        year: car.year,
+                        make: car.make,
+                        model: car.model,
+                        price: car.price,
+                        mileage: car.mileage,
+                        location: car.location,
+                        vin: car.vin,
+                        image: car.image,
+                        url: car.url,
+                        score: car.score,
+                        isLocal: false
+                      }} 
+                    />
                   </div>
                 </div>
               );
