@@ -264,7 +264,7 @@ export default function Home() {
               <option value="">Best Match (Relevance)</option>
               <option value="price_asc">Price: Low to High</option>
               <option value="price_desc">Price: High to Low</option>
-              <option value="miles_asc">Mileage: Low to High</option>
+              <option value="miles_asc">Kilometers: Low to High</option>
               <option value="year_desc">Year: Newest First</option>
             </select>
           </div>

@@ -55,9 +55,10 @@ export async function GET(request: Request) {
 
     // 4. Generate Premium Content
     const engineContext = engine !== 'Unknown' ? ` with the ${engine} engine` : '';
-    const prompt = `You are a premium, expert automotive analyst providing a "Deep Dive" report for the ${year} ${make} ${model}${engineContext}. 
+    const prompt = `You are a premium, expert automotive analyst providing a "Deep Dive" report for the ${year} ${make} ${model}${engineContext} for the CANADIAN market. 
 You must provide exactly four detailed paragraphs/sections as defined below (pay special attention to flaws/maintenance specific to the ${engine} engine if specified). 
 Do not use markdown formatting inside the JSON strings.
+IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead of miles, L/100km instead of MPG).
 
 1. Maintenance: Describe the expected maintenance schedule, specific costly repairs to anticipate (e.g., timing belt at 100k, expensive fluid flushes), and estimated annualized repair costs.
 2. Recalls: List any major Technical Service Bulletins (TSBs) and safety recalls that a buyer MUST check the VIN against.

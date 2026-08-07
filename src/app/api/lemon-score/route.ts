@@ -53,9 +53,10 @@ export async function GET(request: Request) {
 
     // 4. Cache Miss / Expired Logic
     const engineContext = engine !== 'Unknown' ? ` with the ${engine} engine` : '';
-    const prompt = `You are an expert master mechanic, consumer advocate, and used car buyer's guide. Evaluate the ${year} ${make} ${model}${engineContext}. 
+    const prompt = `You are an expert master mechanic, consumer advocate, and used car buyer's guide for the CANADIAN market. Evaluate the ${year} ${make} ${model}${engineContext}. 
 Focus heavily on highly specific pre-purchase data. Identify if this model year represents a major generational shift. 
 Highlight specific engine, transmission, or electrical flaws a buyer MUST look for during a test drive (pay special attention to flaws common to the ${engine} engine if specified).
+IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead of miles, L/100km instead of MPG).
 
 The Pulp Score: Your primary task is to calculate a 'Pulp Score' from 0 to 100. "Pulp" represents mechanical risk, known model-year defects, poor reliability, and general fluff.
 - 0 - 20 (Low Pulp): Highly reliable powertrains, excellent build quality, and low risk of major failure.
