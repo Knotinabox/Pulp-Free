@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import connectToDatabase from '@/lib/mongodb';
+import VehicleAdvice from '@/models/VehicleAdvice';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -48,23 +50,51 @@ export async function GET(request: Request) {
 
     // Map Marketcheck response to our CarListing interface
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mappedListings = (data.listings || []).map((car: Record<string, any>) => {
+    let listings = (data.listings || []).map((car: Record<string, any>) => {
       return {
-        id: car.id,
+        id: car.id || Math.random().toString(),
         year: car.build?.year || 0,
         make: car.build?.make || 'Unknown',
         model: car.build?.model || 'Unknown',
         price: car.price || 0,
-        mileage: car.miles || 0,
-        location: `${car.dealer?.city || ''}, ${car.dealer?.state || ''}`,
-        vin: car.vin,
-        url: car.vdp_url,
-        isLocal: true, // They are local by definition of zip/radius
-        score: Math.floor(Math.random() * 40) + 40 // Default visual score (40-80) until AI is run
+        mileage: Math.round((car.miles || 0) * 1.60934), // Convert miles to km
+        location: `${car.dealer?.city || 'Unknown'}, ${car.dealer?.state || '??'}`,
+        vin: car.vin || '',
+        url: car.vdp_url || '',
+        score: undefined // Default state
       };
     });
 
-    return NextResponse.json({ listings: mappedListings });
+    // 2. Fetch cached scores from MongoDB
+    try {
+      await connectToDatabase();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const uniqueModels = Array.from(new Set(listings.map((l: any) => `${l.year}|${l.make}|${l.model}`)));
+      const queries = uniqueModels.map(key => {
+        const [yearStr, make, model] = key.split('|');
+        return { year: parseInt(yearStr, 10), make, model };
+      });
+      
+      const cachedScores = await VehicleAdvice.find({ $or: queries });
+      const scoreMap = new Map();
+      cachedScores.forEach(doc => {
+        scoreMap.set(`${doc.year}|${doc.make}|${doc.model}`, doc.score);
+      });
+
+      // 3. Map scores back to listings
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      listings = listings.map((l: any) => {
+        const key = `${l.year}|${l.make}|${l.model}`;
+        if (scoreMap.has(key)) {
+          l.score = scoreMap.get(key);
+        }
+        return l;
+      });
+    } catch (dbError) {
+      console.error('Error fetching cached scores for feed:', dbError);
+    }
+
+    return NextResponse.json({ listings });
   } catch (error) {
     console.error("Error calling Marketcheck:", error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

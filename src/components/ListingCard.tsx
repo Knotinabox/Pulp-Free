@@ -40,8 +40,8 @@ export function ListingCard({ listing }: ListingCardProps) {
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const [hasFetchedAi, setHasFetchedAi] = useState(false);
 
-  // We only show a score if the AI record has successfully generated it
-  const activeScore = aiRecord ? aiRecord.score : undefined;
+  // We use the AI record if generated, otherwise fallback to the pre-fetched cached score from the feed (if it exists)
+  const activeScore = aiRecord ? aiRecord.score : listing.score;
 
   const getScoreConfig = (score: number | undefined) => {
     if (score === undefined) {
