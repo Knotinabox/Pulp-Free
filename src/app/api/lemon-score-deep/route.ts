@@ -37,8 +37,8 @@ export async function GET(request: Request) {
     let cachedAdvice = await VehicleAdvice.findOne({ year, make, model, engine });
 
     // 3. Cache Hit Logic for Deep Dive
-    // If the cached record doesn't have the new deep_dive_test_drive field, treat it as a miss to force regeneration.
-    if (cachedAdvice && cachedAdvice.has_deep_dive && cachedAdvice.last_updated && !isExpired(cachedAdvice.last_updated) && cachedAdvice.deep_dive_test_drive) {
+    // If the cached record doesn't have the new deep_dive_efficiency field, treat it as a miss to force regeneration.
+    if (cachedAdvice && cachedAdvice.has_deep_dive && cachedAdvice.last_updated && !isExpired(cachedAdvice.last_updated) && cachedAdvice.deep_dive_test_drive && cachedAdvice.deep_dive_efficiency) {
       console.log(`[DEEP DIVE CACHE HIT] Returning MongoDB data for ${year} ${make} ${model}`);
       return NextResponse.json({
         score: cachedAdvice.score,
@@ -49,7 +49,8 @@ export async function GET(request: Request) {
         deep_dive_maintenance: cachedAdvice.deep_dive_maintenance,
         deep_dive_recalls: cachedAdvice.deep_dive_recalls,
         deep_dive_resale: cachedAdvice.deep_dive_resale,
-        deep_dive_competitors: cachedAdvice.deep_dive_competitors
+        deep_dive_competitors: cachedAdvice.deep_dive_competitors,
+        deep_dive_efficiency: cachedAdvice.deep_dive_efficiency
       });
     }
 
@@ -58,14 +59,15 @@ export async function GET(request: Request) {
     // 4. Generate Premium Content
     const engineContext = engine !== 'Unknown' ? ` with the ${engine} engine` : '';
     const prompt = `You are a premium, expert automotive analyst providing a "Deep Dive" report for the ${year} ${make} ${model}${engineContext} for the CANADIAN market. 
-You must provide exactly four detailed paragraphs/sections as defined below (pay special attention to flaws/maintenance specific to the ${engine} engine if specified). 
+You must provide exactly five detailed paragraphs/sections as defined below (pay special attention to flaws/maintenance specific to the ${engine} engine if specified). 
 Do not use markdown formatting inside the JSON strings.
 IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead of miles, L/100km instead of MPG).
 
 1. Test Drive Checklist: What specific noises, feels, or common failure points a buyer MUST check for during a test drive or visual inspection.
 2. Maintenance: Describe the expected maintenance schedule, specific costly repairs to anticipate (e.g., timing belt at 100k, expensive fluid flushes), and estimated annualized repair costs.
 3. Resale: Analyze how this specific model year holds its value compared to class competitors over the next 5 years (depreciation curve).
-4. Competitors: Suggest 2-3 specific competitor vehicles a buyer should also test drive if they are considering this car, and explain why.`;
+4. Competitors: Suggest 2-3 specific competitor vehicles a buyer should also test drive if they are considering this car, and explain why.
+5. Efficiency: Describe the real-world fuel economy or EV efficiency (in L/100km or kWh/100km) compared to official ratings, and what the buyer should actually expect to pay at the pump based on typical usage.`;
 
     const modelObj = ai.getGenerativeModel({
       model: 'gemini-3.1-flash-lite',
@@ -90,8 +92,12 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
               type: SchemaType.STRING,
               description: "Competitor vehicles to cross-shop and why.",
             },
+            efficiency: {
+              type: SchemaType.STRING,
+              description: "Real-world fuel economy/efficiency in L/100km or kWh/100km.",
+            },
           },
-          required: ["test_drive", "maintenance", "resale", "competitors"],
+          required: ["test_drive", "maintenance", "resale", "competitors", "efficiency"],
         },
       }
     });
@@ -131,6 +137,7 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
         deep_dive_recalls: data.recalls || "N/A",
         deep_dive_resale: data.resale,
         deep_dive_competitors: data.competitors,
+        deep_dive_efficiency: data.efficiency,
         last_updated: new Date()
       },
       $setOnInsert: {
@@ -157,7 +164,8 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
       deep_dive_maintenance: updatedDoc.deep_dive_maintenance,
       deep_dive_recalls: updatedDoc.deep_dive_recalls,
       deep_dive_resale: updatedDoc.deep_dive_resale,
-      deep_dive_competitors: updatedDoc.deep_dive_competitors
+      deep_dive_competitors: updatedDoc.deep_dive_competitors,
+      deep_dive_efficiency: updatedDoc.deep_dive_efficiency
     });
   } catch (error: any) {
     console.error('Error in Lemon-Score-Deep API:', error);

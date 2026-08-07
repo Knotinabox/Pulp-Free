@@ -524,6 +524,13 @@ export function ListingCard({ listing }: ListingCardProps) {
                       <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Competitor Alternatives</p>
                       <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_competitors}</p>
                     </div>
+
+                    {aiRecord.deep_dive_efficiency && (
+                      <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
+                        <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Real-World Efficiency</p>
+                        <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_efficiency}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

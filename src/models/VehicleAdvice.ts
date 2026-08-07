@@ -14,6 +14,7 @@ const VehicleAdviceSchema = new mongoose.Schema({
   deep_dive_test_drive: { type: String },
   deep_dive_resale: { type: String },
   deep_dive_competitors: { type: String },
+  deep_dive_efficiency: { type: String },
   last_updated: { type: Date, default: Date.now }
 });
 
