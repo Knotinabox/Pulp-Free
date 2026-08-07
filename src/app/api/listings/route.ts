@@ -71,6 +71,7 @@ export async function GET(request: Request) {
         location: `${car.dealer?.city || 'Unknown'}, ${car.dealer?.state || '??'}`,
         vin: car.vin || '',
         url: car.vdp_url || '',
+        image: car.media?.photo_links?.[0] || '',
         score: undefined // Default state
       };
     });

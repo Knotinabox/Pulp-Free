@@ -28,6 +28,7 @@ export interface CarListing {
   isLocal: boolean;
   score?: number; // Pre-fetched mock score for feed functionality
   url?: string;
+  image?: string;
 }
 
 interface ListingCardProps {
@@ -36,6 +37,7 @@ interface ListingCardProps {
 
 export function ListingCard({ listing }: ListingCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   // Data States
   const [vinData, setVinData] = useState<VINData | null>(null);
@@ -164,6 +166,24 @@ export function ListingCard({ listing }: ListingCardProps) {
       {/* Top Main Section */}
       <div className="p-5 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
         
+        {/* Image Section */}
+        <div className="w-full md:w-48 h-32 shrink-0 rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900/80 flex flex-col items-center justify-center relative">
+          {listing.image && !imageError ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img 
+              src={listing.image} 
+              alt={`${listing.year} ${listing.make} ${listing.model}`}
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center text-zinc-500 p-2 text-center w-full h-full bg-zinc-900">
+              <Car className="w-8 h-8 mb-2 opacity-40" />
+              <span className="text-[10px] font-bold tracking-wider uppercase opacity-40">PulpFree:<br/>No Image Provided</span>
+            </div>
+          )}
+        </div>
+
         {/* Car Info */}
         <div className="flex-1 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
