@@ -85,11 +85,12 @@ In the 'advice' field, give clear, actionable buying advice (e.g., "Avoid the 1.
     const result = await modelObj.generateContent(prompt);
     const response = result.response;
 
-    if (!response.text) {
+    const text = response.text();
+    if (!text) {
       throw new Error("Empty response from AI");
     }
 
-    const data = JSON.parse(response.text);
+    const data = JSON.parse(text);
 
     // 5. Upsert to DB
     await VehicleAdvice.findOneAndUpdate(
