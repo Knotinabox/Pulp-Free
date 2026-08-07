@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Loader2, ArrowRight, Camera, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { ListingCard } from "@/components/ListingCard";
+import { OwnershipCard } from "@/components/OwnershipCard";
 
 export default function GaragePage() {
   const { status } = useSession();
@@ -14,6 +14,7 @@ export default function GaragePage() {
   const [selectedVins, setSelectedVins] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [vinInput, setVinInput] = useState("");
+  const [mileageInput, setMileageInput] = useState("");
   const [isAddingVin, setIsAddingVin] = useState(false);
   const [isScanningVin, setIsScanningVin] = useState(false);
   const [vinError, setVinError] = useState("");
@@ -82,13 +83,14 @@ export default function GaragePage() {
       const res = await fetch("/api/garage/add-vin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vin: vinInput.toUpperCase() })
+        body: JSON.stringify({ vin: vinInput.toUpperCase(), mileage: Number(mileageInput) || 0 })
       });
       const data = await res.json();
       if (!res.ok) {
         setVinError(data.error || "Failed to add vehicle.");
       } else {
         setVinInput("");
+        setMileageInput("");
         loadGarage();
       }
     } catch (err) {
@@ -184,6 +186,16 @@ export default function GaragePage() {
             </div>
             {vinError && <p className="text-red-400 text-sm mt-2">{vinError}</p>}
           </div>
+          <div className="w-full md:w-48">
+            <label className="block text-sm font-medium text-zinc-400 mb-2">Mileage (km)</label>
+            <input
+              type="number"
+              value={mileageInput}
+              onChange={(e) => setMileageInput(e.target.value)}
+              placeholder="e.g. 150000"
+              className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-lime-500 font-mono"
+            />
+          </div>
           <button 
             onClick={handleAddVin}
             disabled={isAddingVin || isScanningVin}
@@ -218,23 +230,9 @@ export default function GaragePage() {
                     </button>
                   </div>
                   <div className={isSelected ? 'opacity-100' : 'opacity-70 hover:opacity-100 transition-opacity'}>
-                    <ListingCard 
-                      initialIsSaved={true}
+                    <OwnershipCard 
+                      car={car}
                       onRemove={() => handleDelete(car.vin)}
-                      listing={{
-                        id: car._id,
-                        year: car.year,
-                        make: car.make,
-                        model: car.model,
-                        price: car.price,
-                        mileage: car.mileage,
-                        location: car.location,
-                        vin: car.vin,
-                        image: car.image,
-                        url: car.url,
-                        score: car.score,
-                        isLocal: false
-                      }} 
                     />
                   </div>
                 </div>

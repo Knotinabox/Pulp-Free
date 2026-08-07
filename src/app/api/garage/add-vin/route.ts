@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { vin } = await req.json();
+    const { vin, mileage } = await req.json();
     
     if (!vin || vin.length !== 17) {
       return NextResponse.json({ error: "Invalid VIN" }, { status: 400 });
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       make: decoded.make,
       model: decoded.model,
       price: 0,
-      mileage: 0,
+      mileage: Number(mileage) || 0,
       location: "Personal Vehicle",
       image: "", 
       url: "",
