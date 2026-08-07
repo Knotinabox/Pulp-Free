@@ -114,7 +114,7 @@ export default function Home() {
             Find your next <span className="text-lime-500">reliable</span> ride.
           </h1>
           <p className="text-zinc-400 font-medium text-lg mb-8 max-w-xl mx-auto">
-            Search by make or model. Our AI Master Mechanic will evaluate its history and generate a live Lemon-Aid score.
+            Search by make or model. Our AI Master Mechanic will evaluate its history and generate a live Pulp-Free score.
           </p>
           
           <div className="relative max-w-3xl mx-auto space-y-4">

@@ -53,7 +53,7 @@ export async function GET(request: Request) {
     const prompt = `You are an expert master mechanic, consumer advocate, and used car buyer's guide. Evaluate the ${year} ${make} ${model}. 
 Focus heavily on highly specific pre-purchase data. Identify if this model year represents a major generational shift (e.g., "switched to a new 1.5L turbo which had oil dilution issues"). 
 Highlight specific engine, transmission, or electrical flaws a buyer MUST look for during a test drive.
-Give it a Lemon-Aid reliability score from 0-100 (where 100 is perfectly reliable). 
+Give it a Pulp-Free reliability score from 0-100 (where 100 is perfectly reliable). 
 In the 'defect' field, describe these specific historical problems and generational quirks in detail (2-3 sentences). 
 In the 'advice' field, give clear, actionable buying advice (e.g., "Avoid the 1.5L turbo and look for the naturally aspirated 2.0L instead").`;
 
@@ -107,6 +107,6 @@ In the 'advice' field, give clear, actionable buying advice (e.g., "Avoid the 1.
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error in Lemon-Score API:', error);
-    return NextResponse.json({ error: 'Failed to generate Lemon-Aid score' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to generate Pulp-Free score' }, { status: 500 });
   }
 }

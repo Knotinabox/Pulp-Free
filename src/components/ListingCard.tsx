@@ -50,7 +50,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         bg: "bg-lime-500/10",
         border: "border-lime-500/20",
         icon: <ShieldCheck className="w-5 h-5 text-lime-500" />,
-        label: `Lemon-Aid: ${score}/100`,
+        label: `Pulp-Free: ${score}/100`,
       };
     } else if (score >= 50) {
       return {
@@ -58,7 +58,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         bg: "bg-yellow-500/10",
         border: "border-yellow-500/20",
         icon: <AlertTriangle className="w-5 h-5 text-yellow-500" />,
-        label: `Lemon-Aid: ${score}/100`,
+        label: `Pulp-Free: ${score}/100`,
       };
     } else {
       return {
@@ -66,7 +66,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         bg: "bg-red-500/10",
         border: "border-red-500/20",
         icon: <ShieldAlert className="w-5 h-5 text-red-500" />,
-        label: `Lemon-Aid: ${score}/100`,
+        label: `Pulp-Free: ${score}/100`,
       };
     }
   };
@@ -96,7 +96,7 @@ export function ListingCard({ listing }: ListingCardProps) {
             if (!data.error) {
               setAiRecord(data);
             } else {
-              setAiRecord({ score: listing.score ?? 50, defect: "API Rate Limited. Please wait a minute and try again.", advice: "Google Gemini Free Tier limit reached due to earlier loop." });
+              setAiRecord({ score: listing.score ?? 50, defect: "Error generating report.", advice: data.error || "Please try again." });
             }
             setIsLoadingAi(false);
           })
@@ -165,7 +165,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         <div className={`border-t border-zinc-800 p-5 ${config.bg} transition-all duration-300`}>
           <div className="flex items-center justify-between mb-4">
             <h4 className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${config.color}`}>
-              {config.icon} AI Lemon-Aid Report
+              {config.icon} AI Pulp-Free Report
             </h4>
             {listing.url && (
               <a 
