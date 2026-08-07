@@ -19,16 +19,21 @@ export default function ScoreGauge({ score }: ScoreGaugeProps) {
   let dropShadow = "drop-shadow-[0_0_8px_rgba(132,204,22,0.6)]";
   let label = "Low Pulp";
 
-  if (score > 75) {
+  if (score > 80) {
     colorClass = "text-red-500";
     strokeClass = "stroke-red-500";
     dropShadow = "drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]";
-    label = "Lemon / High Pulp";
-  } else if (score > 45) {
+    label = "Lemon";
+  } else if (score > 60) {
     colorClass = "text-orange-500";
     strokeClass = "stroke-orange-500";
     dropShadow = "drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]";
     label = "High Pulp";
+  } else if (score > 40) {
+    colorClass = "text-amber-500";
+    strokeClass = "stroke-amber-500";
+    dropShadow = "drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]";
+    label = "Suspect";
   } else if (score > 20) {
     colorClass = "text-yellow-500";
     strokeClass = "stroke-yellow-500";
