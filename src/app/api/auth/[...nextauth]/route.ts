@@ -4,7 +4,9 @@ import connectToDatabase from "@/lib/mongodb";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 
-const handler = NextAuth({
+import { NextAuthOptions } from "next-auth";
+
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -59,5 +61,7 @@ const handler = NextAuth({
   },
   secret: process.env.NEXTAUTH_SECRET || "super_secret_pulp_free_123_fallback_for_prototype",
 });
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
