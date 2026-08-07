@@ -16,6 +16,8 @@ export async function GET(request: Request) {
   const yearStr = searchParams.get('year');
   const make = searchParams.get('make');
   const model = searchParams.get('model');
+  const engineParam = searchParams.get('engine');
+  const engine = engineParam && engineParam.trim() !== '' ? engineParam : 'Unknown';
 
   if (!yearStr || !make || !model) {
     return NextResponse.json({ error: 'Missing year, make, or model parameters' }, { status: 400 });
@@ -32,7 +34,7 @@ export async function GET(request: Request) {
     await connectToDatabase();
 
     // 2. Check Cache
-    let cachedAdvice = await VehicleAdvice.findOne({ year, make, model });
+    let cachedAdvice = await VehicleAdvice.findOne({ year, make, model, engine });
 
     // 3. Cache Hit Logic
     if (cachedAdvice && cachedAdvice.last_updated) {
@@ -50,9 +52,10 @@ export async function GET(request: Request) {
     }
 
     // 4. Cache Miss / Expired Logic
-    const prompt = `You are an expert master mechanic, consumer advocate, and used car buyer's guide. Evaluate the ${year} ${make} ${model}. 
+    const engineContext = engine !== 'Unknown' ? ` with the ${engine} engine` : '';
+    const prompt = `You are an expert master mechanic, consumer advocate, and used car buyer's guide. Evaluate the ${year} ${make} ${model}${engineContext}. 
 Focus heavily on highly specific pre-purchase data. Identify if this model year represents a major generational shift (e.g., "switched to a new 1.5L turbo which had oil dilution issues"). 
-Highlight specific engine, transmission, or electrical flaws a buyer MUST look for during a test drive.
+Highlight specific engine, transmission, or electrical flaws a buyer MUST look for during a test drive (pay special attention to flaws common to the ${engine} engine if specified).
 Give it a Pulp-Free reliability score from 0-100 (where 100 is perfectly reliable). 
 In the 'defect' field, describe these specific historical problems and generational quirks in detail (2-3 sentences). 
 In the 'advice' field, give clear, actionable buying advice (e.g., "Avoid the 1.5L turbo and look for the naturally aspirated 2.0L instead").`;
@@ -94,7 +97,7 @@ In the 'advice' field, give clear, actionable buying advice (e.g., "Avoid the 1.
 
     // 5. Upsert to DB
     await VehicleAdvice.findOneAndUpdate(
-      { year, make, model },
+      { year, make, model, engine },
       { 
         $set: {
           score: data.score,

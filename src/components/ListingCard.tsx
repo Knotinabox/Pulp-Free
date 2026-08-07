@@ -90,45 +90,45 @@ export function ListingCard({ listing }: ListingCardProps) {
   const config = getScoreConfig(activeScore);
 
   useEffect(() => {
-    if (isExpanded) {
-      // Fetch VIN Data (only once)
-      if (!hasFetchedVin) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setHasFetchedVin(true);
-        setIsLoadingVin(true);
-        decodeVIN(listing.vin).then(data => {
-          setVinData(data);
-          setIsLoadingVin(false);
-        });
-      }
-
-      // Fetch AI Score (only once)
-      if (!hasFetchedAi) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setHasFetchedAi(true);
-        setIsLoadingAi(true);
-        fetch(`/api/lemon-score?year=${listing.year}&make=${listing.make}&model=${listing.model}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.score !== undefined) {
-              setAiRecord(data);
-            } else {
-              setAiRecord({ score: listing.score ?? 50, defect: "Error generating report.", advice: data.error || "Please try again." });
-            }
-          })
-          .catch(() => {
-            setAiRecord({ score: listing.score ?? 50, defect: "API Request Failed.", advice: "Ensure you have an active internet connection." });
-          })
-          .finally(() => setIsLoadingAi(false));
-      }
+    if (isExpanded && !hasFetchedVin) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHasFetchedVin(true);
+      setIsLoadingVin(true);
+      decodeVIN(listing.vin).then(data => {
+        setVinData(data);
+        setIsLoadingVin(false);
+      });
     }
-  }, [isExpanded, hasFetchedVin, hasFetchedAi, listing]);
+  }, [isExpanded, hasFetchedVin, listing.vin]);
+
+  useEffect(() => {
+    if (isExpanded && hasFetchedVin && !isLoadingVin && !hasFetchedAi) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHasFetchedAi(true);
+      setIsLoadingAi(true);
+      const engineParam = vinData?.engineType ? `&engine=${encodeURIComponent(vinData.engineType)}` : '';
+      fetch(`/api/lemon-score?year=${listing.year}&make=${listing.make}&model=${listing.model}${engineParam}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.score !== undefined) {
+            setAiRecord(data);
+          } else {
+            setAiRecord({ score: listing.score ?? 50, defect: "Error generating report.", advice: data.error || "Please try again." });
+          }
+        })
+        .catch(() => {
+          setAiRecord({ score: listing.score ?? 50, defect: "API Request Failed.", advice: "Ensure you have an active internet connection." });
+        })
+        .finally(() => setIsLoadingAi(false));
+    }
+  }, [isExpanded, hasFetchedVin, isLoadingVin, hasFetchedAi, vinData, listing]);
 
   const handleUnlockDeepDive = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsUnlockingDeepDive(true);
     try {
-      const res = await fetch(`/api/lemon-score-deep?year=${listing.year}&make=${listing.make}&model=${listing.model}`);
+      const engineParam = vinData?.engineType ? `&engine=${encodeURIComponent(vinData.engineType)}` : '';
+      const res = await fetch(`/api/lemon-score-deep?year=${listing.year}&make=${listing.make}&model=${listing.model}${engineParam}`);
       const data = await res.json();
       if (res.ok) {
         setAiRecord(data);

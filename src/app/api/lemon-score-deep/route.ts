@@ -16,6 +16,8 @@ export async function GET(request: Request) {
   const yearStr = searchParams.get('year');
   const make = searchParams.get('make');
   const model = searchParams.get('model');
+  const engineParam = searchParams.get('engine');
+  const engine = engineParam && engineParam.trim() !== '' ? engineParam : 'Unknown';
 
   if (!yearStr || !make || !model) {
     return NextResponse.json({ error: 'Missing year, make, or model parameters' }, { status: 400 });
@@ -32,7 +34,7 @@ export async function GET(request: Request) {
     await connectToDatabase();
 
     // 2. Check Cache
-    let cachedAdvice = await VehicleAdvice.findOne({ year, make, model });
+    let cachedAdvice = await VehicleAdvice.findOne({ year, make, model, engine });
 
     // 3. Cache Hit Logic for Deep Dive
     if (cachedAdvice && cachedAdvice.has_deep_dive && cachedAdvice.last_updated && !isExpired(cachedAdvice.last_updated)) {
@@ -52,8 +54,9 @@ export async function GET(request: Request) {
     console.log(`[DEEP DIVE CACHE MISS] Generating premium data for ${year} ${make} ${model}...`);
 
     // 4. Generate Premium Content
-    const prompt = `You are a premium, expert automotive analyst providing a "Deep Dive" report for the ${year} ${make} ${model}. 
-You must provide exactly four detailed paragraphs/sections as defined below. 
+    const engineContext = engine !== 'Unknown' ? ` with the ${engine} engine` : '';
+    const prompt = `You are a premium, expert automotive analyst providing a "Deep Dive" report for the ${year} ${make} ${model}${engineContext}. 
+You must provide exactly four detailed paragraphs/sections as defined below (pay special attention to flaws/maintenance specific to the ${engine} engine if specified). 
 Do not use markdown formatting inside the JSON strings.
 
 1. Maintenance: Describe the expected maintenance schedule, specific costly repairs to anticipate (e.g., timing belt at 100k, expensive fluid flushes), and estimated annualized repair costs.
@@ -119,7 +122,7 @@ Do not use markdown formatting inside the JSON strings.
     };
 
     const updatedDoc = await VehicleAdvice.findOneAndUpdate(
-      { year, make, model },
+      { year, make, model, engine },
       updatePayload,
       { new: true, upsert: true }
     );

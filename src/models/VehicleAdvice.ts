@@ -4,6 +4,7 @@ const VehicleAdviceSchema = new mongoose.Schema({
   year: { type: Number, required: true },
   make: { type: String, required: true },
   model: { type: String, required: true },
+  engine: { type: String, default: 'Unknown' },
   score: { type: Number, required: true },
   defect: { type: String, required: true },
   advice: { type: String, required: true },
