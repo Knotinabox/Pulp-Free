@@ -196,50 +196,52 @@ export default function Home() {
       
       {/* Sticky Header */}
       <header className="sticky top-0 z-50 w-full border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
-        <div className="max-w-3xl mx-auto px-6 h-28 flex items-center justify-between">
-          <div className="flex items-center -ml-4">
+        <div className="max-w-3xl mx-auto px-4 md:px-6 py-4 md:h-28 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
+          <div className="flex items-center w-full justify-center md:w-auto md:justify-start -ml-2 md:-ml-4">
             <img 
               src="/Pulp free.png" 
               alt="PulpFree Logo" 
-              className="h-24 w-auto object-contain rounded-lg"
+              className="h-16 md:h-24 w-auto object-contain rounded-lg"
             />
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 w-full md:w-auto">
             <button 
               onClick={() => setIsFilterActive(!isFilterActive)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm transition-all duration-300 ${
+              className={`flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full font-bold text-xs md:text-sm transition-all duration-300 ${
                 isFilterActive 
                   ? "bg-lime-500 text-zinc-950 shadow-[0_0_20px_rgba(132,204,22,0.4)]" 
                   : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white"
               }`}
             >
-              <Filter className={`w-4 h-4 ${isFilterActive ? "text-zinc-950" : "text-zinc-500"}`} />
-              {isFilterActive ? "Pulp Filter: ON" : "Pulp Filter: OFF"}
+              <Filter className={`w-3 h-3 md:w-4 md:h-4 ${isFilterActive ? "text-zinc-950" : "text-zinc-500"}`} />
+              <span className="hidden sm:inline">{isFilterActive ? "Pulp Filter: ON" : "Pulp Filter: OFF"}</span>
+              <span className="sm:hidden">{isFilterActive ? "Filter: ON" : "Filter: OFF"}</span>
             </button>
             
             {status === "authenticated" ? (
-              <div className="flex items-center gap-4 border-l border-zinc-800 pl-4">
-                <Link href="/garage" className="text-sm font-bold text-white hover:text-lime-500 transition-colors">
+              <div className="flex items-center gap-3 md:gap-4 border-l border-zinc-800 pl-3 md:pl-4">
+                <Link href="/garage" className="text-xs md:text-sm font-bold text-white hover:text-lime-500 transition-colors">
                   My Garage
                 </Link>
-                <button onClick={() => signOut()} className="text-xs font-bold text-zinc-500 hover:text-zinc-300">
+                <button onClick={() => signOut()} className="text-[10px] md:text-xs font-bold text-zinc-500 hover:text-zinc-300">
                   Sign Out
                 </button>
               </div>
             ) : status === "unauthenticated" ? (
-              <div className="border-l border-zinc-800 pl-4">
+              <div className="border-l border-zinc-800 pl-3 md:pl-4">
                 <Link 
                   href="/login" 
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-lime-500 to-lime-400 text-black font-bold text-sm rounded-full hover:shadow-[0_0_20px_rgba(132,204,22,0.4)] hover:scale-105 transition-all duration-300"
+                  className="flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-lime-500 to-lime-400 text-black font-bold text-xs md:text-sm rounded-full hover:shadow-[0_0_20px_rgba(132,204,22,0.4)] hover:scale-105 transition-all duration-300"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  Sign In for Premium Features
+                  <Sparkles className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="hidden sm:inline">Sign In for Premium Features</span>
+                  <span className="sm:hidden">Sign In</span>
                 </Link>
               </div>
             ) : (
-              <div className="border-l border-zinc-800 pl-4 w-12">
-                <Loader2 className="w-4 h-4 animate-spin text-zinc-600" />
+              <div className="border-l border-zinc-800 pl-3 md:pl-4 w-8 md:w-12 flex justify-center">
+                <Loader2 className="w-3 h-3 md:w-4 md:h-4 animate-spin text-zinc-600" />
               </div>
             )}
           </div>
