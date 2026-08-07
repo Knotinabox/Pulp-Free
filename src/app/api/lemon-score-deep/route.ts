@@ -96,8 +96,23 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
       }
     });
 
-    const result = await modelObj.generateContent(prompt);
-    const response = result.response;
+    let result;
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        result = await modelObj.generateContent(prompt);
+        break;
+      } catch (err: any) {
+        if (err.message?.includes('503') && retries > 1) {
+          console.warn(`[GEMINI 503] Retrying deep dive generation... (${retries - 1} attempts left)`);
+          await new Promise(res => setTimeout(res, 1500));
+          retries--;
+        } else {
+          throw err;
+        }
+      }
+    }
+    const response = result!.response;
     const text = response.text();
 
     if (!text) {
