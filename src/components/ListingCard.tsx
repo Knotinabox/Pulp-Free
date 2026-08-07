@@ -435,61 +435,7 @@ export function ListingCard({ listing }: ListingCardProps) {
             )}
           </div>
 
-          {/* RECALLS & TSBS SECTION */}
-          {isLoadingRecalls ? (
-            <div className="mt-6 pt-6 border-t border-zinc-800/50 flex items-center gap-2 text-zinc-500">
-              <Loader2 className="w-4 h-4 animate-spin" /> Fetching live safety data...
-            </div>
-          ) : (
-            <div className="mt-6 pt-6 border-t border-zinc-800/50 space-y-4">
-              {recalls.length === 0 && tsbs.length === 0 ? (
-                <div className="bg-lime-500/5 border border-lime-500/20 rounded-xl p-4 flex items-center gap-3">
-                  <ShieldCheck className="w-5 h-5 text-lime-500 shrink-0" />
-                  <p className="text-sm font-medium text-lime-400">No active safety recalls or major TSBs found for this vehicle.</p>
-                </div>
-              ) : (
-                <>
-              {recalls.length > 0 && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <ShieldAlert className="w-5 h-5 text-red-500" />
-                    <h4 className="text-sm font-black text-red-500 uppercase tracking-wider">
-                      🚨 {recalls.length} OPEN SAFETY RECALL{recalls.length > 1 ? 'S' : ''} FOUND
-                    </h4>
-                  </div>
-                  <ul className="space-y-3">
-                    {recalls.map((recall: any, idx: number) => (
-                      <li key={idx} className="text-sm text-red-400 font-medium leading-relaxed">
-                        <span className="font-bold text-red-500 block mb-1">{recall.Component}</span>
-                        {recall.Summary ? recall.Summary : 'No summary available.'}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              {tsbs.length > 0 && (
-                <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <AlertTriangle className="w-5 h-5 text-orange-500" />
-                    <h4 className="text-sm font-black text-orange-500 uppercase tracking-wider">
-                      Manufacturer Communications (TSBs)
-                    </h4>
-                  </div>
-                  <ul className="space-y-3">
-                    {tsbs.slice(0, 3).map((tsb: any, idx: number) => (
-                      <li key={idx} className="text-sm text-orange-400 font-medium leading-relaxed">
-                        <span className="font-bold text-orange-500 block mb-1">{tsb.Component}</span>
-                        {tsb.Summary ? (tsb.Summary.length > 150 ? tsb.Summary.substring(0, 150) + '...' : tsb.Summary) : 'No summary available.'}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-                </>
-              )}
-            </div>
-          )}
+
           {/* DEEP DIVE SECTION */}
           {!isLoadingAi && aiRecord && (
             <div className="mt-6 pt-6 border-t border-zinc-800/50">
@@ -506,7 +452,63 @@ export function ListingCard({ listing }: ListingCardProps) {
                       <p className="text-zinc-200 text-sm font-medium leading-relaxed">{aiRecord.deep_dive_test_drive}</p>
                     </div>
                   )}
-                  
+
+                  {/* RECALLS & TSBS SECTION IN PREMIUM */}
+                  {isLoadingRecalls ? (
+                    <div className="flex items-center gap-2 text-zinc-500 mb-6">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Fetching live safety data...
+                    </div>
+                  ) : (
+                    <div className="space-y-4 mb-6">
+                      {recalls.length === 0 && tsbs.length === 0 ? (
+                        <div className="bg-lime-500/5 border border-lime-500/20 rounded-xl p-4 flex items-center gap-3">
+                          <ShieldCheck className="w-5 h-5 text-lime-500 shrink-0" />
+                          <p className="text-sm font-medium text-lime-400">No active safety recalls or major TSBs found for this vehicle.</p>
+                        </div>
+                      ) : (
+                        <>
+                      {recalls.length > 0 && (
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <ShieldAlert className="w-5 h-5 text-red-500" />
+                            <h4 className="text-sm font-black text-red-500 uppercase tracking-wider">
+                              🚨 {recalls.length} OPEN SAFETY RECALL{recalls.length > 1 ? 'S' : ''} FOUND
+                            </h4>
+                          </div>
+                          <ul className="space-y-3">
+                            {recalls.map((recall: any, idx: number) => (
+                              <li key={idx} className="text-sm text-red-400 font-medium leading-relaxed">
+                                <span className="font-bold text-red-500 block mb-1">{recall.Component}</span>
+                                {recall.Summary ? recall.Summary : 'No summary available.'}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {tsbs.length > 0 && (
+                        <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                            <AlertTriangle className="w-5 h-5 text-orange-500" />
+                            <h4 className="text-sm font-black text-orange-500 uppercase tracking-wider">
+                              Manufacturer Communications (TSBs)
+                            </h4>
+                          </div>
+                          <ul className="space-y-3">
+                            {tsbs.slice(0, 3).map((tsb: any, idx: number) => (
+                              <li key={idx} className="text-sm text-orange-400 font-medium leading-relaxed">
+                                <span className="font-bold text-orange-500 block mb-1">{tsb.Component}</span>
+                                {tsb.Summary ? (tsb.Summary.length > 150 ? tsb.Summary.substring(0, 150) + '...' : tsb.Summary) : 'No summary available.'}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                        </>
+                      )}
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
                       <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Maintenance & Costs</p>
