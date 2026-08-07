@@ -18,11 +18,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    const prompt = `You are a master mechanic and consumer advocate. Evaluate the ${year} ${make} ${model}. 
+    const prompt = `You are an expert master mechanic, consumer advocate, and used car buyer's guide. Evaluate the ${year} ${make} ${model}. 
+Focus heavily on highly specific pre-purchase data. Identify if this model year represents a major generational shift (e.g., "switched to a new 1.5L turbo which had oil dilution issues"). 
+Highlight specific engine, transmission, or electrical flaws a buyer MUST look for during a test drive.
 Give it a Lemon-Aid reliability score from 0-100 (where 100 is perfectly reliable). 
-List its historical defects. 
-Give one sentence of buying advice. 
-Return ONLY valid JSON with keys: "score", "defect", "advice".`;
+In the 'defect' field, describe these specific historical problems and generational quirks in detail (2-3 sentences). 
+In the 'advice' field, give clear, actionable buying advice (e.g., "Avoid the 1.5L turbo and look for the naturally aspirated 2.0L instead").`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -38,11 +39,11 @@ Return ONLY valid JSON with keys: "score", "defect", "advice".`;
             },
             defect: {
               type: Type.STRING,
-              description: "A summary of known historical defects",
+              description: "A detailed summary of specific historical problems, generational quirks, and engine/transmission flaws (2-3 sentences)",
             },
             advice: {
               type: Type.STRING,
-              description: "One sentence of buying advice",
+              description: "Clear, actionable buying advice (e.g., 'Avoid the 1.5L turbo and look for the 2.0L')",
             },
           },
           required: ["score", "defect", "advice"],
