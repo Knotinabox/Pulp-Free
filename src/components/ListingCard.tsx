@@ -14,8 +14,10 @@ export interface LemonRecord {
   has_deep_dive?: boolean;
   deep_dive_test_drive?: string;
   deep_dive_maintenance?: string;
+  deep_dive_recalls?: string;
   deep_dive_resale?: string;
   deep_dive_competitors?: string;
+  deep_dive_efficiency?: string;
 }
 
 export interface CarListing {
