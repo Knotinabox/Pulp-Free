@@ -50,7 +50,7 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
     const loadSafety = async () => {
       try {
         const [recallData, tsbData] = await Promise.all([
-          fetchRecalls(car.year.toString(), car.make, car.model),
+          fetchRecalls(car.vin),
           fetchTSBs(car.year.toString(), car.make, car.model)
         ]);
         setRecalls(recallData || []);
