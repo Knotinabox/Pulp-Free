@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
-import { Filter, Search, SearchX, Loader2 } from "lucide-react";
+import { Filter, Search, SearchX, Loader2, Sparkles } from "lucide-react";
 import { ListingCard, CarListing } from "@/components/ListingCard";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
@@ -151,8 +151,12 @@ export default function Home() {
               </div>
             ) : status === "unauthenticated" ? (
               <div className="border-l border-zinc-800 pl-4">
-                <Link href="/login" className="text-sm font-bold text-lime-500 hover:text-lime-400 transition-colors">
-                  Sign In
+                <Link 
+                  href="/login" 
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-lime-500 to-lime-400 text-black font-bold text-sm rounded-full hover:shadow-[0_0_20px_rgba(132,204,22,0.4)] hover:scale-105 transition-all duration-300"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Sign In for Premium Features
                 </Link>
               </div>
             ) : (
