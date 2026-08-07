@@ -45,13 +45,14 @@ export async function GET(request: Request) {
     console.log(`[OWNERSHIP CACHE MISS] Generating ownership data for ${year} ${make} ${model} ${engine}...`);
 
     const engineContext = engine !== 'Unknown' ? ` with the ${engine} engine` : '';
-    const prompt = `You are a master mechanic providing ownership advice to someone who ALREADY OWNS a ${year} ${make} ${model}${engineContext} in the CANADIAN market. 
+    const prompt = `You are a master mechanic providing highly detailed, verbose ownership advice to someone who ALREADY OWNS a ${year} ${make} ${model}${engineContext} in the CANADIAN market. 
+CRITICAL REGIONAL ACCURACY: You must strictly use NORTH AMERICAN / CANADIAN market specifications and engine availability for this exact model year. Do NOT reference European-market engines (e.g., if this is a 2009-2013 BMW X5 Diesel in North America, it uses the M57 engine, NOT the N57).
 Do not give them buying advice or tell them to avoid purchasing it—they already own it. 
-IMPORTANT: Use the metric system for all measurements (e.g., kilometers).
+IMPORTANT: Use the metric system for all measurements (e.g., kilometers). Be highly verbose and exhaustive in your technical explanations.
 
-Provide two detailed sections:
-1. quirks: The common quirks, known failures, and specific symptoms they should watch out for during their ownership (e.g., what noises, smells, or behaviors indicate a failing component). Give actionable advice on how to mitigate these issues.
-2. maintenance: The expected maintenance schedule. What specific parts need preventative replacement before they fail? What are the typical costs they should budget for annually?`;
+Provide two highly detailed sections:
+1. quirks: Be very verbose. Tap into deep enthusiast forum knowledge. List the obscure quirks, known failures, and specific symptoms they should watch out for (e.g., failing plastic cowlings raining water on injectors, vacuum line degradation, sensor failures that cause cascading issues). Give actionable advice on how to mitigate these issues.
+2. maintenance: Be very verbose. Detail the expected maintenance schedule. What specific parts need preventative replacement before they fail? What are the typical costs they should budget for annually? Explain the reasoning behind these intervals.`;
 
     const modelObj = ai.getGenerativeModel({
       model: 'gemini-3.1-flash-lite',
