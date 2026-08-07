@@ -16,6 +16,8 @@ export default function Home() {
   const [modelsList, setModelsList] = useState<{Model_Name: string}[]>([]);
   const { status } = useSession();
   const [zip, setZip] = useState("V8W 1W5"); // Default Victoria full postal code
+  const [lat, setLat] = useState<string | null>(null);
+  const [lon, setLon] = useState<string | null>(null);
   const [radiusKm, setRadiusKm] = useState("50");
   const [vehicleType, setVehicleType] = useState("");
   const [budget, setBudget] = useState("");
@@ -43,6 +45,29 @@ export default function Home() {
     }
   }, [status]);
 
+  const handleAutoLocate = () => {
+    if (navigator.geolocation) {
+      setIsLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLat(position.coords.latitude.toString());
+          setLon(position.coords.longitude.toString());
+          setZip(""); // clear zip so lat/lon takes precedence
+          setIsLoading(false);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          alert("Could not detect your location. Please select a city or enter a postal code.");
+          setIsLoading(false);
+          setZip("V8W 1W5");
+        },
+        { timeout: 10000 }
+      );
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
+  };
+
   const searchLocalMarket = async (isLoadMore = false) => {
     if (isLoadMore) setIsFetchingMore(true);
     else {
@@ -61,7 +86,8 @@ export default function Home() {
       if (sortOption === "miles_asc") sortParams = "&sort=miles&sort_order=asc";
       if (sortOption === "year_desc") sortParams = "&sort=year&sort_order=desc";
 
-      const res = await fetch(`/api/listings?zip=${encodeURIComponent(zip)}&radius=${radiusMiles}&type=${encodeURIComponent(vehicleType)}&budget=${encodeURIComponent(budget)}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&start=${start}&fuelType=${encodeURIComponent(fuelType)}${sortParams}`);
+      const coordsParam = (lat && lon) ? `&lat=${lat}&lon=${lon}` : '';
+      const res = await fetch(`/api/listings?zip=${encodeURIComponent(zip)}${coordsParam}&radius=${radiusMiles}&type=${encodeURIComponent(vehicleType)}&budget=${encodeURIComponent(budget)}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&start=${start}&fuelType=${encodeURIComponent(fuelType)}${sortParams}`);
       const data = await res.json();
       
       if (data.error) {
@@ -95,7 +121,7 @@ export default function Home() {
 
     return () => clearTimeout(delayDebounceFn);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortOption, make, model, zip, radiusKm, vehicleType, budget, fuelType]);
+  }, [sortOption, make, model, zip, lat, lon, radiusKm, vehicleType, budget, fuelType]);
 
   // Restore state on mount
   useEffect(() => {
@@ -112,6 +138,8 @@ export default function Home() {
         if (parsed.budget) setBudget(parsed.budget);
         if (parsed.fuelType) setFuelType(parsed.fuelType);
         if (parsed.sortOption) setSortOption(parsed.sortOption);
+        if (parsed.lat) setLat(parsed.lat);
+        if (parsed.lon) setLon(parsed.lon);
         if (parsed.isFilterActive !== undefined) setIsFilterActive(parsed.isFilterActive);
       } catch (e) {
         console.error("Failed to restore search state", e);
@@ -123,10 +151,10 @@ export default function Home() {
   useEffect(() => {
     if (isClient) {
       sessionStorage.setItem('pulpFreeSearchState', JSON.stringify({
-        zip, radiusKm, make, model, vehicleType, budget, fuelType, sortOption, isFilterActive
+        zip, lat, lon, radiusKm, make, model, vehicleType, budget, fuelType, sortOption, isFilterActive
       }));
     }
-  }, [isClient, zip, radiusKm, make, model, vehicleType, budget, fuelType, sortOption, isFilterActive]);
+  }, [isClient, zip, lat, lon, radiusKm, make, model, vehicleType, budget, fuelType, sortOption, isFilterActive]);
 
   useEffect(() => {
     if (make) {
@@ -304,14 +332,39 @@ export default function Home() {
                 <option value="electric">Electric</option>
                 <option value="diesel">Diesel</option>
               </select>
-              <input
-                type="text"
-                className="block w-full px-4 py-3.5 bg-zinc-900 border border-zinc-700 rounded-2xl text-sm md:text-base text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl text-center"
-                placeholder="Postal Code"
-                value={zip}
-                onChange={(e) => setZip(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && searchLocalMarket()}
-              />
+              <select
+                className="block w-full px-4 py-3.5 bg-zinc-900 border border-zinc-700 rounded-2xl text-sm md:text-base text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none text-center"
+                value={lat ? "auto" : zip}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "auto") {
+                    handleAutoLocate();
+                  } else if (val === "custom") {
+                    const code = window.prompt("Enter Canadian Postal Code (e.g. V8W):", zip || "V8W");
+                    if (code) {
+                      setLat(null);
+                      setLon(null);
+                      setZip(code.toUpperCase());
+                    }
+                  } else {
+                    setLat(null);
+                    setLon(null);
+                    setZip(val);
+                  }
+                }}
+              >
+                <option value="V8W 1W5">Victoria, BC</option>
+                <option value="V6B 1A1">Vancouver, BC</option>
+                <option value="V1Y 1A1">Kelowna, BC</option>
+                <option value="T2P 1A1">Calgary, AB</option>
+                <option value="T5J 1A1">Edmonton, AB</option>
+                <option value="M5V 1A1">Toronto, ON</option>
+                <option value="K1P 1A1">Ottawa, ON</option>
+                <option value="H2Y 1A1">Montreal, QC</option>
+                <option value="B3J 1A1">Halifax, NS</option>
+                <option value="custom">Custom Postal Code...</option>
+                <option value="auto">📍 Auto Locate Me</option>
+              </select>
               <select
                 className="block w-full px-4 py-3.5 bg-zinc-900 border border-zinc-700 rounded-2xl text-sm md:text-base text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none text-center"
                 value={radiusKm}

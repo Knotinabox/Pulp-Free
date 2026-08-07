@@ -4,14 +4,17 @@ import VehicleAdvice from '@/models/VehicleAdvice';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  let zip = searchParams.get('zip') || '78701';
+  let zip = searchParams.get('zip') || '';
+  const lat = searchParams.get('lat');
+  const lon = searchParams.get('lon');
   const radius = searchParams.get('radius') || '50';
   const type = searchParams.get('type') || '';
   const budget = searchParams.get('budget') || '';
   const fuelType = searchParams.get('fuelType') || '';
   
-  // Clean zip/postal code
-  zip = zip.trim().toUpperCase();
+  // Clean zip/postal code if it exists
+  if (zip) {
+    zip = zip.trim().toUpperCase();
   // If user entered a 3-character Canadian FSA (e.g. "V8W"), pad it with "1A1" because Marketcheck requires 6 characters for Canada.
   if (/^[A-Z]\d[A-Z]$/.test(zip)) {
     zip += '1A1';
@@ -29,7 +32,15 @@ export async function GET(request: Request) {
   }
 
   try {
-    let url = `https://mc-api.marketcheck.com/v2/search/car/active?api_key=${apiKey}&zip=${encodeURIComponent(zip)}&radius=${radius}&car_type=used&rows=50&start=${start}&country=CA`;
+    let url = `https://mc-api.marketcheck.com/v2/search/car/active?api_key=${apiKey}&radius=${radius}&car_type=used&rows=50&start=${start}&country=CA`;
+    
+    if (lat && lon) {
+      url += `&latitude=${lat}&longitude=${lon}`;
+    } else if (zip) {
+      url += `&zip=${encodeURIComponent(zip)}`;
+    } else {
+      url += `&zip=V8W1A1`; // Default fallback to Victoria
+    }
     
     if (make) {
       url += `&make=${encodeURIComponent(make)}`;
