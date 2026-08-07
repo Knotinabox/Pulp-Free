@@ -35,7 +35,13 @@ export async function decodeVIN(vin: string): Promise<VINData | null> {
     };
 
     // Build a highly specific engine string
-    const disp = extractValue("Displacement (L)");
+    let disp = extractValue("Displacement (L)");
+    if (disp !== "Unknown") {
+      const parsedDisp = parseFloat(disp);
+      if (!isNaN(parsedDisp)) {
+        disp = parsedDisp.toFixed(1);
+      }
+    }
     const config = extractValue("Engine Configuration");
     const cyl = extractValue("Engine Number of Cylinders");
     const turbo = extractValue("Turbo");
