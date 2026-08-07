@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     let cachedAdvice = await VehicleAdvice.findOne({ year, make, model, engine });
 
     // 3. Cache Hit Logic
-    if (cachedAdvice && cachedAdvice.last_updated) {
+    if (cachedAdvice && cachedAdvice.last_updated && cachedAdvice.defect !== "Detailed defect analysis pending.") {
       if (!isExpired(cachedAdvice.last_updated)) {
         console.log(`[CACHE HIT] Returning MongoDB data for ${year} ${make} ${model}`);
         return NextResponse.json({
