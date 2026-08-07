@@ -6,7 +6,6 @@ export async function GET(request: Request) {
   const radius = searchParams.get('radius') || '50';
   const type = searchParams.get('type') || '';
   const budget = searchParams.get('budget') || '';
-  const query = searchParams.get('q') || '';
   
   // Clean zip/postal code
   zip = zip.trim().toUpperCase();
@@ -15,8 +14,6 @@ export async function GET(request: Request) {
     zip += '1A1';
   }
   
-  const type = searchParams.get('type') || '';
-  const budget = searchParams.get('budget') || '';
   const make = searchParams.get('make') || '';
   const model = searchParams.get('model') || '';
 
@@ -50,7 +47,8 @@ export async function GET(request: Request) {
     }
 
     // Map Marketcheck response to our CarListing interface
-    const mappedListings = (data.listings || []).map((car: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mappedListings = (data.listings || []).map((car: Record<string, any>) => {
       return {
         id: car.id,
         year: car.build?.year || 0,

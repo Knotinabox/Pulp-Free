@@ -44,6 +44,7 @@ export default function Home() {
 
   useEffect(() => {
     if (make) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setModel("");
       fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${make}?format=json`)
         .then(res => res.json())

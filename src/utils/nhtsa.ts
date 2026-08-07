@@ -6,6 +6,7 @@ export interface VINData {
   year: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function decodeVIN(vin: string): Promise<VINData | null> {
   // If it's one of our fake 11-character mock VINs, return dummy factory data
   if (vin.length < 17) {

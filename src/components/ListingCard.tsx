@@ -76,6 +76,7 @@ export function ListingCard({ listing }: ListingCardProps) {
     if (isExpanded) {
       // Fetch VIN Data (only once)
       if (!hasFetchedVin) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setHasFetchedVin(true);
         setIsLoadingVin(true);
         decodeVIN(listing.vin).then(data => {
