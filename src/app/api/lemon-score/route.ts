@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import connectToDatabase from '@/lib/mongodb';
 import VehicleAdvice from '@/models/VehicleAdvice';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 function isExpired(dateString: Date) {
   const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
@@ -57,24 +57,23 @@ Give it a Pulp-Free reliability score from 0-100 (where 100 is perfectly reliabl
 In the 'defect' field, describe these specific historical problems and generational quirks in detail (2-3 sentences). 
 In the 'advice' field, give clear, actionable buying advice (e.g., "Avoid the 1.5L turbo and look for the naturally aspirated 2.0L instead").`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash-8b',
-      contents: prompt,
-      config: {
+    const modelObj = ai.getGenerativeModel({
+      model: 'gemini-1.5-flash',
+      generationConfig: {
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
             score: {
-              type: Type.INTEGER,
+              type: SchemaType.INTEGER,
               description: "A reliability score from 0 to 100",
             },
             defect: {
-              type: Type.STRING,
+              type: SchemaType.STRING,
               description: "A detailed summary of specific historical problems, generational quirks, and engine/transmission flaws (2-3 sentences)",
             },
             advice: {
-              type: Type.STRING,
+              type: SchemaType.STRING,
               description: "Clear, actionable buying advice (e.g., 'Avoid the 1.5L turbo and look for the 2.0L')",
             },
           },
@@ -82,6 +81,9 @@ In the 'advice' field, give clear, actionable buying advice (e.g., "Avoid the 1.
         },
       }
     });
+
+    const result = await modelObj.generateContent(prompt);
+    const response = result.response;
 
     if (!response.text) {
       throw new Error("Empty response from AI");
