@@ -18,6 +18,9 @@ export async function GET(request: Request) {
   
   const make = searchParams.get('make') || '';
   const model = searchParams.get('model') || '';
+  const sort = searchParams.get('sort') || '';
+  const sortOrder = searchParams.get('sort_order') || '';
+  const start = searchParams.get('start') || '0';
 
   const apiKey = process.env.MARKETCHECK_API_KEY;
   if (!apiKey) {
@@ -25,7 +28,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    let url = `https://mc-api.marketcheck.com/v2/search/car/active?api_key=${apiKey}&zip=${encodeURIComponent(zip)}&radius=${radius}&car_type=used&rows=10&country=CA`;
+    let url = `https://mc-api.marketcheck.com/v2/search/car/active?api_key=${apiKey}&zip=${encodeURIComponent(zip)}&radius=${radius}&car_type=used&rows=50&start=${start}&country=CA`;
     
     if (make) {
       url += `&make=${encodeURIComponent(make)}`;
@@ -38,6 +41,9 @@ export async function GET(request: Request) {
     }
     if (budget) {
       url += `&price_range=0-${encodeURIComponent(budget)}`;
+    }
+    if (sort && sortOrder) {
+      url += `&sort_by=${encodeURIComponent(sort)}&sort_order=${encodeURIComponent(sortOrder)}`;
     }
 
     const res = await fetch(url);

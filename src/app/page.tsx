@@ -16,31 +16,61 @@ export default function Home() {
   const [radiusKm, setRadiusKm] = useState("50");
   const [vehicleType, setVehicleType] = useState("");
   const [budget, setBudget] = useState("");
+  const [sortOption, setSortOption] = useState("");
+  const [page, setPage] = useState(1);
   
   const [listings, setListings] = useState<CarListing[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [error, setError] = useState("");
 
-  const searchLocalMarket = async () => {
-    setIsLoading(true);
+  const searchLocalMarket = async (isLoadMore = false) => {
+    if (isLoadMore) setIsFetchingMore(true);
+    else {
+      setIsLoading(true);
+      setPage(1);
+    }
     setError("");
     
     try {
       const radiusMiles = Math.round(parseInt(radiusKm) * 0.621371);
-      const res = await fetch(`/api/listings?zip=${encodeURIComponent(zip)}&radius=${radiusMiles}&type=${encodeURIComponent(vehicleType)}&budget=${encodeURIComponent(budget)}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`);
+      const start = isLoadMore ? page * 50 : 0;
+      
+      let sortParams = "";
+      if (sortOption === "price_asc") sortParams = "&sort=price&sort_order=asc";
+      if (sortOption === "price_desc") sortParams = "&sort=price&sort_order=desc";
+      if (sortOption === "miles_asc") sortParams = "&sort=miles&sort_order=asc";
+      if (sortOption === "year_desc") sortParams = "&sort=year&sort_order=desc";
+
+      const res = await fetch(`/api/listings?zip=${encodeURIComponent(zip)}&radius=${radiusMiles}&type=${encodeURIComponent(vehicleType)}&budget=${encodeURIComponent(budget)}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&start=${start}${sortParams}`);
       const data = await res.json();
       
       if (data.error) {
         setError(data.error);
       } else {
-        setListings(data.listings || []);
+        if (isLoadMore) {
+          setListings(prev => [...prev, ...(data.listings || [])]);
+          setPage(prev => prev + 1);
+        } else {
+          setListings(data.listings || []);
+          setPage(1); // Set up for the first load more
+        }
       }
     } catch (err) {
       setError("Failed to reach local market database.");
     } finally {
       setIsLoading(false);
+      setIsFetchingMore(false);
     }
   };
+
+  // Re-run search automatically if sort option changes
+  useEffect(() => {
+    if (listings.length > 0) {
+      searchLocalMarket(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortOption]);
 
   useEffect(() => {
     if (make) {
@@ -144,7 +174,7 @@ export default function Home() {
                 </select>
               </div>
               <button
-                onClick={searchLocalMarket}
+                onClick={() => searchLocalMarket(false)}
                 disabled={isLoading}
                 className="px-8 py-4 bg-lime-500 hover:bg-lime-400 text-zinc-950 font-bold text-lg rounded-2xl transition-all shadow-[0_0_20px_rgba(132,204,22,0.3)] disabled:opacity-50"
               >
@@ -203,13 +233,29 @@ export default function Home() {
 
       {/* Main Feed */}
       <main className="max-w-3xl mx-auto px-6 py-10">
-        <div className="mb-8">
-          <h2 className="text-2xl font-black text-white tracking-tight mb-2">Local Market</h2>
-          <p className="text-zinc-400 font-medium">
-            {isFilterActive 
-              ? "Showing only trusted and verifiable vehicles in your area." 
-              : "Expand a vehicle to trigger a live AI background check."}
-          </p>
+        <div className="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-black text-white tracking-tight mb-2">Local Market</h2>
+            <p className="text-zinc-400 font-medium">
+              {isFilterActive 
+                ? "Showing only trusted and verifiable vehicles in your area." 
+                : "Expand a vehicle to trigger a live AI background check."}
+            </p>
+          </div>
+          
+          <div className="shrink-0 w-full sm:w-auto">
+            <select
+              className="block w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none"
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+            >
+              <option value="">Best Match (Relevance)</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="miles_asc">Mileage: Low to High</option>
+              <option value="year_desc">Year: Newest First</option>
+            </select>
+          </div>
         </div>
 
         {error && (
@@ -225,20 +271,38 @@ export default function Home() {
             <p className="text-zinc-400">Fetching live inventory within {radiusKm} kilometers of {zip}.</p>
           </div>
         ) : displayedListings.length > 0 ? (
-          <div className="space-y-6">
-            {displayedListings.map((listing) => (
-              <div 
-                key={listing.id}
-                className={`transition-all duration-500 ${
-                  isFilterActive && (listing.score || 0) >= 80
-                    ? "shadow-[0_0_30px_rgba(132,204,22,0.1)] rounded-xl" 
-                    : ""
-                }`}
-              >
-                <ListingCard listing={listing} />
+          <>
+            <div className="space-y-6">
+              {displayedListings.map((listing) => (
+                <div 
+                  key={listing.id}
+                  className={`transition-all duration-500 ${
+                    isFilterActive && (listing.score || 0) >= 80
+                      ? "shadow-[0_0_30px_rgba(132,204,22,0.1)] rounded-xl" 
+                      : ""
+                  }`}
+                >
+                  <ListingCard listing={listing} />
+                </div>
+              ))}
+            </div>
+            
+            {displayedListings.length >= 50 && !isFilterActive && (
+              <div className="mt-8 text-center">
+                <button
+                  onClick={() => searchLocalMarket(true)}
+                  disabled={isFetchingMore}
+                  className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-bold rounded-xl transition-all disabled:opacity-50 flex items-center justify-center mx-auto gap-2 shadow-lg"
+                >
+                  {isFetchingMore ? (
+                    <><div className="w-4 h-4 border-2 border-lime-500 border-t-transparent rounded-full animate-spin"></div> Fetching...</>
+                  ) : (
+                    "Load More Listings"
+                  )}
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-20 bg-zinc-900/30 rounded-2xl border border-zinc-800/50">
             <SearchX className="mx-auto h-12 w-12 text-zinc-600 mb-4" />
