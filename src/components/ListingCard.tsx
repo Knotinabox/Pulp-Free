@@ -112,7 +112,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         bg: "bg-lime-500/10",
         border: "border-lime-500/20",
         icon: <ShieldCheck className="w-5 h-5 text-lime-500" />,
-        label: `Pulp Score: ${score}/100`,
+        label: `Pulp-Free (${score}/100)`,
       };
     } else if (score <= 40) {
       return {
@@ -120,7 +120,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         color: "text-yellow-500",
         border: "border-yellow-500/20",
         icon: <AlertTriangle className="w-4 h-4" />,
-        label: `Pulp Score: ${score}/100`,
+        label: `Trace Pulp (${score}/100)`,
       };
     } else if (score <= 60) {
       return {
@@ -128,7 +128,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         color: "text-amber-500",
         border: "border-amber-500/20",
         icon: <AlertTriangle className="w-4 h-4" />,
-        label: `Pulp Score: ${score}/100`,
+        label: `Moderate Pulp (${score}/100)`,
       };
     } else if (score <= 80) {
       return {
@@ -136,7 +136,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         color: "text-orange-500",
         border: "border-orange-500/20",
         icon: <AlertTriangle className="w-4 h-4" />,
-        label: `Pulp Score: ${score}/100`,
+        label: `High Pulp (${score}/100)`,
       };
     } else {
       return {
@@ -144,7 +144,7 @@ export function ListingCard({ listing }: ListingCardProps) {
         bg: "bg-red-500/10",
         border: "border-red-500/20",
         icon: <ShieldAlert className="w-5 h-5 text-red-500" />,
-        label: `Pulp Score: ${score}/100`,
+        label: `Lemon / Undrivable (${score}/100)`,
       };
     }
   };
@@ -299,6 +299,7 @@ export function ListingCard({ listing }: ListingCardProps) {
               src={listing.image} 
               alt={`${listing.year} ${listing.make} ${listing.model}`}
               className="absolute inset-0 w-full h-full object-cover"
+              referrerPolicy="no-referrer"
               onError={() => setImageError(true)}
             />
           ) : (
