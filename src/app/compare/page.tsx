@@ -33,7 +33,12 @@ function CompareContent() {
           const dives: Record<string, any> = {};
           await Promise.all(selectedCars.map(async (car: any) => {
             try {
-              const res = await fetch(`/api/lemon-score-deep?year=${car.year}&make=${car.make}&model=${car.model}`);
+              const engineStr = car.engine || 'Unknown';
+              // 1. Ensure basic score is generated and cached
+              await fetch(`/api/lemon-score?year=${car.year}&make=${car.make}&model=${car.model}&engine=${engineStr}`);
+              
+              // 2. Fetch premium deep dive which will now definitely have the base fields
+              const res = await fetch(`/api/lemon-score-deep?year=${car.year}&make=${car.make}&model=${car.model}&engine=${engineStr}`);
               const dd = await res.json();
               dives[car.vin] = dd;
             } catch (e) {
