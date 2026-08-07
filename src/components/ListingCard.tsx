@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ShieldCheck, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Car, MapPin, Loader2, Anchor, ExternalLink } from "lucide-react";
 import { decodeVIN, VINData } from "@/utils/nhtsa";
+import ScoreGauge from "./ScoreGauge";
 
 export interface LemonRecord {
   score: number; // 0-100
@@ -214,6 +215,10 @@ export function ListingCard({ listing }: ListingCardProps) {
             )}
           </div>
           
+          {!isLoadingAi && aiRecord && (
+            <ScoreGauge score={aiRecord.score} />
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <p className="text-[11px] text-zinc-500 font-bold uppercase tracking-wider mb-1.5">Known Quirks & Defects</p>
