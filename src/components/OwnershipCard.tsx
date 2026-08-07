@@ -5,6 +5,9 @@ import { ShieldCheck, AlertTriangle, ShieldAlert, Loader2, Camera, Wrench, Trend
 import { fetchRecalls, fetchTSBs, decodeVIN, VINData } from "@/utils/nhtsa";
 
 export interface LemonRecord {
+  score?: number;
+  defect?: string;
+  advice?: string;
   quirks?: string;
   maintenance?: string;
 }
@@ -92,12 +95,16 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
           engineParam = `&engine=${encodeURIComponent(decoded.engineType)}`;
         }
 
+        // Fetch generic model problems (lemon-score)
+        const baseRes = await fetch(`/api/lemon-score?year=${car.year}&make=${car.make}&model=${car.model}${engineParam}`);
+        const baseData = await baseRes.json();
+
         // Fetch ownership insights
         const res = await fetch(`/api/garage/insights?year=${car.year}&make=${car.make}&model=${car.model}${engineParam}`);
         const data = await res.json();
         
-        if (data.quirks && data.maintenance) {
-          setAiRecord(data);
+        if (data.quirks || baseData.defect) {
+          setAiRecord({ ...baseData, ...data });
         }
       } catch (e) {
         console.error(e);
@@ -138,7 +145,7 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
 
   return (
     <div className="bg-zinc-900 border-2 border-zinc-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row relative group">
-      <div className="absolute top-4 left-4 z-10 flex gap-2">
+      <div className="absolute top-4 right-4 z-10 flex gap-2">
         <button
           onClick={onRemove}
           className="w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center text-white backdrop-blur-md shadow-lg transition-colors opacity-0 group-hover:opacity-100"
@@ -222,7 +229,9 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
                         <ul className="space-y-2">
                           {recalls.slice(0, 2).map((r, i) => (
                             <li key={i} className="text-sm text-red-400">
-                              <span className="font-bold text-red-500 block">{r.Component}</span>
+                              <span className="font-bold text-red-500 block">
+                                {r.Component} {r.NHTSACampaignNumber ? `(Ref: ${r.NHTSACampaignNumber})` : ''}
+                              </span>
                               <ExpandableText text={r.Summary} />
                             </li>
                           ))}
@@ -231,11 +240,13 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
                     )}
                     {tsbs.length > 0 && (
                       <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
-                        <div className="text-xs font-black text-orange-500 uppercase tracking-wider mb-2">Manufacturer Communications (TSBs)</div>
+                        <div className="text-xs font-black text-orange-500 uppercase tracking-wider mb-2">Historical Recalls For This Model</div>
                         <ul className="space-y-2">
                           {tsbs.slice(0, 2).map((t, i) => (
                             <li key={i} className="text-sm text-orange-400">
-                              <span className="font-bold text-orange-500 block">{t.Component}</span>
+                              <span className="font-bold text-orange-500 block">
+                                {t.Component} {t.NHTSACampaignNumber ? `(Ref: ${t.NHTSACampaignNumber})` : ''}
+                              </span>
                               <ExpandableText text={t.Summary} />
                             </li>
                           ))}
@@ -257,8 +268,22 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
               <div className="flex items-center gap-2 text-zinc-500 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Analyzing vehicle history...</div>
             ) : aiRecord ? (
               <div className="grid grid-cols-1 gap-4">
+                {/* Generic Model Problems */}
+                {aiRecord.defect && (
+                  <div className="bg-zinc-800/30 p-4 rounded-xl border border-zinc-700/50">
+                    <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1">Common Model Problems</p>
+                    <p className="text-zinc-300 text-sm leading-relaxed mb-2">
+                      {aiRecord.defect}
+                    </p>
+                    {aiRecord.advice && (
+                      <p className="text-sm font-semibold text-lime-400">💡 {aiRecord.advice}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Specific Ownership Quirks */}
                 <div className="bg-zinc-800/30 p-4 rounded-xl border border-zinc-700/50">
-                  <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1">Common Quirks</p>
+                  <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1">Ownership Quirks & Symptoms</p>
                   <p className="text-zinc-300 text-sm leading-relaxed mb-3">
                     {aiRecord?.quirks || "Detailed defect analysis pending."}
                   </p>
