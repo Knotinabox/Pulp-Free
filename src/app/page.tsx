@@ -22,6 +22,7 @@ export default function Home() {
   const [fuelType, setFuelType] = useState("");
   const [sortOption, setSortOption] = useState("");
   const [page, setPage] = useState(1);
+  const [isClient, setIsClient] = useState(false);
   
   const [listings, setListings] = useState<CarListing[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -82,10 +83,39 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortOption, make, model, zip, radiusKm, vehicleType, budget, fuelType]);
 
+  // Restore state on mount
+  useEffect(() => {
+    setIsClient(true);
+    const savedState = sessionStorage.getItem('pulpFreeSearchState');
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        if (parsed.zip) setZip(parsed.zip);
+        if (parsed.radiusKm) setRadiusKm(parsed.radiusKm);
+        if (parsed.make) setMake(parsed.make);
+        if (parsed.model) setModel(parsed.model);
+        if (parsed.vehicleType) setVehicleType(parsed.vehicleType);
+        if (parsed.budget) setBudget(parsed.budget);
+        if (parsed.fuelType) setFuelType(parsed.fuelType);
+        if (parsed.sortOption) setSortOption(parsed.sortOption);
+        if (parsed.isFilterActive !== undefined) setIsFilterActive(parsed.isFilterActive);
+      } catch (e) {
+        console.error("Failed to restore search state", e);
+      }
+    }
+  }, []);
+
+  // Save state when it changes
+  useEffect(() => {
+    if (isClient) {
+      sessionStorage.setItem('pulpFreeSearchState', JSON.stringify({
+        zip, radiusKm, make, model, vehicleType, budget, fuelType, sortOption, isFilterActive
+      }));
+    }
+  }, [isClient, zip, radiusKm, make, model, vehicleType, budget, fuelType, sortOption, isFilterActive]);
+
   useEffect(() => {
     if (make) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setModel("");
       fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${make}?format=json`)
         .then(res => res.json())
         .then(data => {
@@ -191,7 +221,10 @@ export default function Home() {
                 <select
                   className="block w-full px-4 py-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-lg text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none"
                   value={make}
-                  onChange={(e) => setMake(e.target.value)}
+                  onChange={(e) => {
+                    setMake(e.target.value);
+                    setModel("");
+                  }}
                 >
                   <option value="">Any Make</option>
                   {topMakes.map(m => (
