@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ShieldCheck, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Car, MapPin, Loader2, Anchor } from "lucide-react";
+import { ShieldCheck, AlertTriangle, ShieldAlert, ChevronDown, ChevronUp, Car, MapPin, Loader2, Anchor, ExternalLink } from "lucide-react";
 import { decodeVIN, VINData } from "@/utils/nhtsa";
 
 export interface LemonRecord {
@@ -21,6 +21,7 @@ export interface CarListing {
   vin: string;
   isLocal: boolean;
   score?: number; // Pre-fetched mock score for feed functionality
+  url?: string;
 }
 
 interface ListingCardProps {
@@ -166,6 +167,17 @@ export function ListingCard({ listing }: ListingCardProps) {
             <h4 className={`text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${config.color}`}>
               {config.icon} AI Lemon-Aid Report
             </h4>
+            {listing.url && (
+              <a 
+                href={listing.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-lime-500 hover:bg-lime-400 text-black text-xs font-bold uppercase tracking-wider rounded-lg transition-colors inline-flex items-center gap-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                View Listing <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

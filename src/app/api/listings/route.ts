@@ -58,6 +58,7 @@ export async function GET(request: Request) {
         mileage: car.miles || 0,
         location: `${car.dealer?.city || ''}, ${car.dealer?.state || ''}`,
         vin: car.vin,
+        url: car.vdp_url,
         isLocal: true, // They are local by definition of zip/radius
         score: Math.floor(Math.random() * 40) + 40 // Default visual score (40-80) until AI is run
       };
