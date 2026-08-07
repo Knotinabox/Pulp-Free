@@ -14,20 +14,6 @@ export async function GET(request: Request) {
   if (/^[A-Z]\d[A-Z]$/.test(zip)) {
     zip += '1A1';
   }
-
-  // Determine Canadian Province from the first letter of the postal code to restrict search strictly to Canada (preventing US bleed-over in border towns like Victoria)
-  let province = '';
-  if (/^[A-Z]\d[A-Z]\d[A-Z]\d$/.test(zip)) {
-    const firstLetter = zip.charAt(0);
-    const provinceMap: Record<string, string> = {
-      'A': 'NL', 'B': 'NS', 'C': 'PE', 'E': 'NB',
-      'G': 'QC', 'H': 'QC', 'J': 'QC',
-      'K': 'ON', 'L': 'ON', 'M': 'ON', 'N': 'ON', 'P': 'ON',
-      'R': 'MB', 'S': 'SK', 'T': 'AB', 'V': 'BC',
-      'X': 'NT', 'Y': 'YT'
-    };
-    province = provinceMap[firstLetter] || '';
-  }
   
   // Basic parsing for Make and Model from the query string
   let make = '';
@@ -46,11 +32,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    let url = `https://mc-api.marketcheck.com/v2/search/car/active?api_key=${apiKey}&zip=${encodeURIComponent(zip)}&radius=${radius}&car_type=used&rows=10`;
+    let url = `https://mc-api.marketcheck.com/v2/search/car/active?api_key=${apiKey}&zip=${encodeURIComponent(zip)}&radius=${radius}&car_type=used&rows=10&country=CA`;
     
-    if (province) {
-      url += `&state=${province}`;
-    }
     if (make) {
       url += `&make=${encodeURIComponent(make)}`;
     }
