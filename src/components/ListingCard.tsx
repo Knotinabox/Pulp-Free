@@ -486,10 +486,10 @@ export function ListingCard({ listing }: ListingCardProps) {
                   </ul>
                 </div>
               )}
-              </>
-            )}
-          </div>
-
+                </>
+              )}
+            </div>
+          )}
           {/* DEEP DIVE SECTION */}
           {!isLoadingAi && aiRecord && (
             <div className="mt-6 pt-6 border-t border-zinc-800/50">
