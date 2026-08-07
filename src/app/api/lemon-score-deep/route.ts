@@ -37,7 +37,8 @@ export async function GET(request: Request) {
     let cachedAdvice = await VehicleAdvice.findOne({ year, make, model, engine });
 
     // 3. Cache Hit Logic for Deep Dive
-    if (cachedAdvice && cachedAdvice.has_deep_dive && cachedAdvice.last_updated && !isExpired(cachedAdvice.last_updated)) {
+    // If the cached record doesn't have the new deep_dive_test_drive field, treat it as a miss to force regeneration.
+    if (cachedAdvice && cachedAdvice.has_deep_dive && cachedAdvice.last_updated && !isExpired(cachedAdvice.last_updated) && cachedAdvice.deep_dive_test_drive) {
       console.log(`[DEEP DIVE CACHE HIT] Returning MongoDB data for ${year} ${make} ${model}`);
       return NextResponse.json({
         score: cachedAdvice.score,
