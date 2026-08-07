@@ -1,23 +1,55 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI, Type, Schema } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
+import connectToDatabase from '@/lib/mongodb';
+import VehicleAdvice from '@/models/VehicleAdvice';
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+function isExpired(dateString: Date) {
+  const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
+  const age = Date.now() - new Date(dateString).getTime();
+  return age > NINETY_DAYS_MS;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const year = searchParams.get('year');
+  const yearStr = searchParams.get('year');
   const make = searchParams.get('make');
   const model = searchParams.get('model');
 
-  if (!year || !make || !model) {
+  if (!yearStr || !make || !model) {
     return NextResponse.json({ error: 'Missing year, make, or model parameters' }, { status: 400 });
   }
+
+  const year = parseInt(yearStr, 10);
 
   if (!process.env.GEMINI_API_KEY) {
     return NextResponse.json({ error: 'GEMINI_API_KEY is not configured' }, { status: 500 });
   }
 
   try {
+    // 1. Connect to DB
+    await connectToDatabase();
+
+    // 2. Check Cache
+    let cachedAdvice = await VehicleAdvice.findOne({ year, make, model });
+
+    // 3. Cache Hit Logic
+    if (cachedAdvice && cachedAdvice.last_updated) {
+      if (!isExpired(cachedAdvice.last_updated)) {
+        console.log(`[CACHE HIT] Returning MongoDB data for ${year} ${make} ${model}`);
+        return NextResponse.json({
+          score: cachedAdvice.score,
+          defect: cachedAdvice.defect,
+          advice: cachedAdvice.advice
+        });
+      }
+      console.log(`[CACHE EXPIRED] Data for ${year} ${make} ${model} is older than 90 days. Generating fresh...`);
+    } else {
+      console.log(`[CACHE MISS] No MongoDB entry for ${year} ${make} ${model}. Generating fresh...`);
+    }
+
+    // 4. Cache Miss / Expired Logic
     const prompt = `You are an expert master mechanic, consumer advocate, and used car buyer's guide. Evaluate the ${year} ${make} ${model}. 
 Focus heavily on highly specific pre-purchase data. Identify if this model year represents a major generational shift (e.g., "switched to a new 1.5L turbo which had oil dilution issues"). 
 Highlight specific engine, transmission, or electrical flaws a buyer MUST look for during a test drive.
@@ -56,9 +88,25 @@ In the 'advice' field, give clear, actionable buying advice (e.g., "Avoid the 1.
     }
 
     const data = JSON.parse(response.text);
+
+    // 5. Upsert to DB
+    await VehicleAdvice.findOneAndUpdate(
+      { year, make, model },
+      { 
+        $set: {
+          score: data.score,
+          defect: data.defect,
+          advice: data.advice,
+          last_updated: new Date()
+        } 
+      },
+      { new: true, upsert: true }
+    );
+    console.log(`[CACHE SAVED] Fresh data saved to MongoDB for ${year} ${make} ${model}`);
+
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error fetching from Gemini API:', error);
+    console.error('Error in Lemon-Score API:', error);
     return NextResponse.json({ error: 'Failed to generate Lemon-Aid score' }, { status: 500 });
   }
 }
