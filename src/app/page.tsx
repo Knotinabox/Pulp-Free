@@ -102,9 +102,9 @@ export default function Home() {
 
   // Filter the live listings based on Pulp Filter only (search query is handled by API)
   const displayedListings = listings.filter((listing) => {
-    // Pulp Filter
+    // Pulp-Free Filter: When ON, hide any known car with a score > 40
     if (isFilterActive) {
-      if ((listing.score || 0) < 50) return false;
+      if (listing.score !== undefined && listing.score > 40) return false;
     }
     return true;
   });
@@ -289,7 +289,7 @@ export default function Home() {
                 <div 
                   key={listing.id}
                   className={`transition-all duration-500 ${
-                    isFilterActive && (listing.score || 0) >= 80
+                    isFilterActive && listing.score !== undefined && listing.score <= 40
                       ? "shadow-[0_0_30px_rgba(132,204,22,0.1)] rounded-xl" 
                       : ""
                   }`}
