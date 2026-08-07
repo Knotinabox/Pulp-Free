@@ -8,6 +8,7 @@ export async function GET(request: Request) {
   const radius = searchParams.get('radius') || '50';
   const type = searchParams.get('type') || '';
   const budget = searchParams.get('budget') || '';
+  const fuelType = searchParams.get('fuelType') || '';
   
   // Clean zip/postal code
   zip = zip.trim().toUpperCase();
@@ -41,6 +42,9 @@ export async function GET(request: Request) {
     }
     if (budget) {
       url += `&price_range=0-${encodeURIComponent(budget)}`;
+    }
+    if (fuelType) {
+      url += `&fuel_type=${encodeURIComponent(fuelType)}`;
     }
     if (sort && sortOrder) {
       url += `&sort_by=${encodeURIComponent(sort)}&sort_order=${encodeURIComponent(sortOrder)}`;

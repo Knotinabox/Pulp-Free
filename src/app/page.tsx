@@ -16,6 +16,7 @@ export default function Home() {
   const [radiusKm, setRadiusKm] = useState("50");
   const [vehicleType, setVehicleType] = useState("");
   const [budget, setBudget] = useState("");
+  const [fuelType, setFuelType] = useState("");
   const [sortOption, setSortOption] = useState("");
   const [page, setPage] = useState(1);
   
@@ -42,7 +43,7 @@ export default function Home() {
       if (sortOption === "miles_asc") sortParams = "&sort=miles&sort_order=asc";
       if (sortOption === "year_desc") sortParams = "&sort=year&sort_order=desc";
 
-      const res = await fetch(`/api/listings?zip=${encodeURIComponent(zip)}&radius=${radiusMiles}&type=${encodeURIComponent(vehicleType)}&budget=${encodeURIComponent(budget)}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&start=${start}${sortParams}`);
+      const res = await fetch(`/api/listings?zip=${encodeURIComponent(zip)}&radius=${radiusMiles}&type=${encodeURIComponent(vehicleType)}&budget=${encodeURIComponent(budget)}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&start=${start}&fuelType=${encodeURIComponent(fuelType)}${sortParams}`);
       const data = await res.json();
       
       if (data.error) {
@@ -183,7 +184,7 @@ export default function Home() {
             </div>
 
             {/* Filters Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <select
                 className="block w-full px-4 py-3.5 bg-zinc-900 border border-zinc-700 rounded-2xl text-sm md:text-base text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none"
                 value={vehicleType}
@@ -208,6 +209,17 @@ export default function Home() {
                 <option value="25000">Under $25k</option>
                 <option value="40000">Under $40k</option>
                 <option value="60000">Under $60k</option>
+              </select>
+              <select
+                className="block w-full px-4 py-3.5 bg-zinc-900 border border-zinc-700 rounded-2xl text-sm md:text-base text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none"
+                value={fuelType}
+                onChange={(e) => setFuelType(e.target.value)}
+              >
+                <option value="">Any Fuel</option>
+                <option value="gasoline">Gasoline</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="electric">Electric</option>
+                <option value="diesel">Diesel</option>
               </select>
               <input
                 type="text"
