@@ -60,6 +60,39 @@ export function ListingCard({ listing }: ListingCardProps) {
   
   const [isUnlockingDeepDive, setIsUnlockingDeepDive] = useState(false);
 
+  useEffect(() => {
+    if (session) {
+      const pendingSave = sessionStorage.getItem('pendingSaveListing');
+      if (pendingSave) {
+        try {
+          const parsed = JSON.parse(pendingSave);
+          if (parsed.vin === listing.vin) {
+            sessionStorage.removeItem('pendingSaveListing');
+            fetch("/api/garage", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(parsed)
+            }).then(() => setIsSaved(true));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      
+      const pendingDeepDive = sessionStorage.getItem('pendingDeepDive');
+      if (pendingDeepDive === listing.vin) {
+        sessionStorage.removeItem('pendingDeepDive');
+        setIsExpanded(true);
+        // We set a flag or just call the fetch directly
+        setTimeout(() => {
+          const fakeEvent = { stopPropagation: () => {} } as React.MouseEvent;
+          handleUnlockDeepDive(fakeEvent, true);
+        }, 500);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, listing.vin]);
+
   // We use the AI record if generated, otherwise fallback to the pre-fetched cached score from the feed (if it exists)
   const activeScore = aiRecord ? aiRecord.score : listing.score;
 
@@ -167,9 +200,10 @@ export function ListingCard({ listing }: ListingCardProps) {
     }
   }, [isExpanded, hasFetchedVin, isLoadingVin, hasFetchedAi, vinData, listing]);
 
-  const handleUnlockDeepDive = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!session) {
+  const handleUnlockDeepDive = async (e: React.MouseEvent, autoTrigger = false) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (!session && !autoTrigger) {
+      sessionStorage.setItem('pendingDeepDive', listing.vin);
       router.push("/login");
       return;
     }
@@ -196,6 +230,18 @@ export function ListingCard({ listing }: ListingCardProps) {
   const toggleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!session) {
+      sessionStorage.setItem('pendingSaveListing', JSON.stringify({
+        vin: listing.vin,
+        year: listing.year,
+        make: listing.make,
+        model: listing.model,
+        price: listing.price,
+        mileage: listing.mileage,
+        location: listing.location,
+        image: listing.image,
+        url: listing.url,
+        score: currentScore,
+      }));
       router.push("/login");
       return;
     }
