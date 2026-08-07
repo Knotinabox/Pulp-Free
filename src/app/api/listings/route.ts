@@ -15,16 +15,10 @@ export async function GET(request: Request) {
     zip += '1A1';
   }
   
-  // Basic parsing for Make and Model from the query string
-  let make = '';
-  let model = '';
-  if (query) {
-    const parts = query.trim().split(' ');
-    make = parts[0];
-    if (parts.length > 1) {
-      model = parts.slice(1).join(' ');
-    }
-  }
+  const type = searchParams.get('type') || '';
+  const budget = searchParams.get('budget') || '';
+  const make = searchParams.get('make') || '';
+  const model = searchParams.get('model') || '';
 
   const apiKey = process.env.MARKETCHECK_API_KEY;
   if (!apiKey) {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import { Filter, Search, SearchX } from "lucide-react";
 import { ListingCard, CarListing } from "@/components/ListingCard";
@@ -9,7 +9,9 @@ import { ListingCard, CarListing } from "@/components/ListingCard";
 
 export default function Home() {
   const [isFilterActive, setIsFilterActive] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [make, setMake] = useState("");
+  const [model, setModel] = useState("");
+  const [modelsList, setModelsList] = useState<{Model_Name: string}[]>([]);
   const [zip, setZip] = useState("V8W 1W5"); // Default Victoria full postal code
   const [radiusKm, setRadiusKm] = useState("50");
   const [vehicleType, setVehicleType] = useState("");
@@ -25,7 +27,7 @@ export default function Home() {
     
     try {
       const radiusMiles = Math.round(parseInt(radiusKm) * 0.621371);
-      const res = await fetch(`/api/listings?zip=${encodeURIComponent(zip)}&radius=${radiusMiles}&type=${encodeURIComponent(vehicleType)}&budget=${encodeURIComponent(budget)}&q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`/api/listings?zip=${encodeURIComponent(zip)}&radius=${radiusMiles}&type=${encodeURIComponent(vehicleType)}&budget=${encodeURIComponent(budget)}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}`);
       const data = await res.json();
       
       if (data.error) {
@@ -39,6 +41,32 @@ export default function Home() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (make) {
+      setModel("");
+      fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/getmodelsformake/${make}?format=json`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.Results) {
+            setModelsList(data.Results);
+          } else {
+            setModelsList([]);
+          }
+        })
+        .catch(() => setModelsList([]));
+    } else {
+      setModelsList([]);
+      setModel("");
+    }
+  }, [make]);
+
+  const topMakes = [
+    "Acura", "Alfa Romeo", "Audi", "BMW", "Buick", "Cadillac", "Chevrolet", "Chrysler", 
+    "Dodge", "Fiat", "Ford", "Genesis", "GMC", "Honda", "Hyundai", "Infiniti", "Jaguar", 
+    "Jeep", "Kia", "Land Rover", "Lexus", "Lincoln", "Maserati", "Mazda", "Mercedes-Benz", 
+    "MINI", "Mitsubishi", "Nissan", "Porsche", "Ram", "Subaru", "Tesla", "Toyota", "Volkswagen", "Volvo"
+  ];
 
   // Filter the live listings based on Pulp Filter only (search query is handled by API)
   const displayedListings = listings.filter((listing) => {
@@ -91,18 +119,28 @@ export default function Home() {
           <div className="relative max-w-3xl mx-auto space-y-4">
             {/* Search Bar Row */}
             <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Search className="h-6 w-6 text-zinc-500" />
-                </div>
-                <input
-                  type="text"
-                  className="block w-full pl-12 pr-4 py-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl"
-                  placeholder="e.g. Honda CR-V..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && searchLocalMarket()}
-                />
+              <div className="relative flex-1 grid grid-cols-2 gap-4">
+                <select
+                  className="block w-full px-4 py-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-lg text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none"
+                  value={make}
+                  onChange={(e) => setMake(e.target.value)}
+                >
+                  <option value="">Any Make</option>
+                  {topMakes.map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+                <select
+                  className="block w-full px-4 py-4 bg-zinc-900 border border-zinc-700 rounded-2xl text-lg text-white focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all shadow-xl appearance-none"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  disabled={!make || modelsList.length === 0}
+                >
+                  <option value="">Any Model</option>
+                  {modelsList.map((m, idx) => (
+                    <option key={idx} value={m.Model_Name}>{m.Model_Name}</option>
+                  ))}
+                </select>
               </div>
               <button
                 onClick={searchLocalMarket}
