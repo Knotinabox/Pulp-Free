@@ -88,10 +88,19 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
     // Fetch deep dive data
     const fetchDeepDive = async () => {
       try {
+        // Ensure base lemon-score (defect/advice) is generated first
+        const baseRes = await fetch(`/api/lemon-score?year=${car.year}&make=${car.make}&model=${car.model}`);
+        const baseData = await baseRes.json();
+        
+        // Then fetch the premium deep dive data
         const res = await fetch(`/api/lemon-score-deep?year=${car.year}&make=${car.make}&model=${car.model}`);
         const data = await res.json();
+        
+        // Combine them if needed, but deep-dive endpoint returns all fields once they exist.
         if (data.score !== undefined) {
-          setAiRecord(data);
+          setAiRecord({ ...baseData, ...data });
+        } else if (baseData.score !== undefined) {
+          setAiRecord(baseData);
         }
       } catch (e) {
         console.error(e);
@@ -184,10 +193,10 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
             ) : (
               <button 
                 onClick={() => setIsEditingMileage(true)}
-                className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm font-bold text-zinc-300 transition-colors group relative"
+                title="Click to edit mileage"
+                className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm font-bold text-zinc-300 transition-colors"
               >
                 {localMileage ? `${localMileage.toLocaleString()} km` : "Add Mileage"}
-                <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity pointer-events-none">Click to edit</span>
               </button>
             )}
           </div>
