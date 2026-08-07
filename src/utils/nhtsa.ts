@@ -45,12 +45,14 @@ export async function decodeVIN(vin: string): Promise<VINData | null> {
     const config = extractValue("Engine Configuration");
     const cyl = extractValue("Engine Number of Cylinders");
     const turbo = extractValue("Turbo");
+    const fuel = extractValue("Fuel Type - Primary");
 
     let engineStr = "";
     if (disp !== "Unknown") engineStr += `${disp}L `;
     if (config !== "Unknown") engineStr += `${config} `;
     if (cyl !== "Unknown") engineStr += `${cyl} Cyl`;
     if (turbo === "Yes") engineStr += " Turbo";
+    if (fuel !== "Unknown" && fuel !== "Gasoline") engineStr += ` ${fuel}`;
     
     if (!engineStr.trim()) engineStr = "Unknown Engine";
 
