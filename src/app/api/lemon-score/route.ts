@@ -68,7 +68,7 @@ In the 'defect' field, describe these specific historical problems and generatio
 In the 'advice' field, give clear, actionable buying advice.`;
 
     const modelObj = ai.getGenerativeModel({
-      model: 'gemini-pro-latest',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: {

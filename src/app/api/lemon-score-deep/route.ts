@@ -72,7 +72,7 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
 6. market_analysis: First, explicitly state the exact engine code and transmission used for this specific model year in the CANADIAN market. Acknowledge any differences from the European market.`;
 
     const modelObj = ai.getGenerativeModel({
-      model: 'gemini-pro-latest',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: {
