@@ -29,6 +29,24 @@ function ExpandableText({ text, maxLength = 150 }: { text: string; maxLength?: n
   );
 }
 
+function formatInsightText(text: string) {
+  if (!text) return null;
+  return text.split('\n').map((line, idx) => {
+    // Match bullet points starting with -, *, or • followed by text, a colon, and more text.
+    const match = line.match(/^([•\-*]\s+)([^:]+):(.*)/);
+    if (match) {
+      const title = match[2].replace(/\*\*/g, '');
+      return (
+        <span key={idx}>
+          {match[1]}<span className="text-lime-400 font-bold">{title}:</span>{match[3]}
+          {'\n'}
+        </span>
+      );
+    }
+    return <span key={idx}>{line.replace(/\*\*/g, '')}{'\n'}</span>;
+  });
+}
+
 export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => void }) {
   const [recalls, setRecalls] = useState<any[]>([]);
   const [tsbs, setTsbs] = useState<any[]>([]);
@@ -282,7 +300,7 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
                 <div className="bg-zinc-800/30 p-4 rounded-xl border border-zinc-700/50">
                   <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider mb-1">Ownership Quirks & Symptoms</p>
                   <p className="text-zinc-300 text-sm leading-relaxed mb-3 whitespace-pre-wrap">
-                    {aiRecord?.quirks || "Detailed defect analysis pending."}
+                    {aiRecord?.quirks ? formatInsightText(aiRecord.quirks) : "Detailed defect analysis pending."}
                   </p>
                 </div>
 
@@ -290,7 +308,7 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
                 <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                   <h4 className="text-xs font-black text-blue-500 tracking-wider mb-3 uppercase">Expected Maintenance</h4>
                   <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">
-                    {aiRecord?.maintenance || "Detailed maintenance schedule pending."}
+                    {aiRecord?.maintenance ? formatInsightText(aiRecord.maintenance) : "Detailed maintenance schedule pending."}
                   </p>
                 </div>
               </div>
