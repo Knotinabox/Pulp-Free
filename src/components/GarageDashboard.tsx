@@ -14,6 +14,7 @@ interface Vehicle {
   vin: string;
   image?: string;
   mileage: number;
+  score?: number;
 }
 
 interface GarageDashboardProps {
@@ -102,6 +103,38 @@ export default function GarageDashboard({ vehicle }: GarageDashboardProps) {
     setLogs((prev) => [newLog, ...prev].sort((a, b) => new Date(b.loggedAt).getTime() - new Date(a.loggedAt).getTime()));
   };
 
+  const getThemeStyles = (s?: number) => {
+    if (s === undefined) return { 
+      text: "text-[#00ff00]", 
+      bg: "bg-[#00ff00]", 
+      hoverBg: "hover:bg-[#00cc00]", 
+      shadow: "shadow-[0_0_20px_rgba(0,255,0,0.2)]",
+      dropShadow: "drop-shadow-[0_0_15px_rgba(0,255,0,0.3)]" 
+    };
+    if (s <= 20) return {
+      text: "text-green-500", bg: "bg-green-500", hoverBg: "hover:bg-green-600",
+      shadow: "shadow-[0_0_20px_rgba(34,197,94,0.2)]", dropShadow: "drop-shadow-[0_0_15px_rgba(34,197,94,0.3)]"
+    };
+    if (s <= 40) return {
+      text: "text-yellow-500", bg: "bg-yellow-500", hoverBg: "hover:bg-yellow-600",
+      shadow: "shadow-[0_0_20px_rgba(234,179,8,0.2)]", dropShadow: "drop-shadow-[0_0_15px_rgba(234,179,8,0.3)]"
+    };
+    if (s <= 60) return {
+      text: "text-orange-500", bg: "bg-orange-500", hoverBg: "hover:bg-orange-600",
+      shadow: "shadow-[0_0_20px_rgba(249,115,22,0.2)]", dropShadow: "drop-shadow-[0_0_15px_rgba(249,115,22,0.3)]"
+    };
+    if (s <= 80) return {
+      text: "text-red-500", bg: "bg-red-500", hoverBg: "hover:bg-red-600",
+      shadow: "shadow-[0_0_20px_rgba(239,68,68,0.2)]", dropShadow: "drop-shadow-[0_0_15px_rgba(239,68,68,0.3)]"
+    };
+    return {
+      text: "text-red-600", bg: "bg-red-600", hoverBg: "hover:bg-red-700",
+      shadow: "shadow-[0_0_20px_rgba(220,38,38,0.2)]", dropShadow: "drop-shadow-[0_0_15px_rgba(220,38,38,0.3)]"
+    };
+  };
+
+  const theme = getThemeStyles(vehicle.score);
+
   return (
     <div className="bg-zinc-950 min-h-screen text-white p-4 md:p-8">
       {/* Vehicle Header */}
@@ -121,7 +154,7 @@ export default function GarageDashboard({ vehicle }: GarageDashboardProps) {
         </div>
         <button
           onClick={() => setIsAddFormOpen(true)}
-          className="bg-[#00ff00] text-black px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-[#00cc00] transition-colors w-full md:w-auto justify-center shadow-[0_0_20px_rgba(0,255,0,0.2)]"
+          className={`text-black px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors w-full md:w-auto justify-center ${theme.bg} ${theme.hoverBg} ${theme.shadow}`}
         >
           <Plus className="w-5 h-5" />
           Log Fill-up
@@ -165,11 +198,11 @@ export default function GarageDashboard({ vehicle }: GarageDashboardProps) {
             {/* Primary Metric */}
             <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-3xl p-8 relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                <TrendingDown className="w-32 h-32 text-[#00ff00]" />
+                <TrendingDown className={`w-32 h-32 ${theme.text}`} />
               </div>
               <p className="text-zinc-400 font-medium mb-2 relative z-10">Average Fuel Economy</p>
               <div className="flex items-baseline gap-2 relative z-10">
-                <span className="text-6xl md:text-7xl font-black text-[#00ff00] drop-shadow-[0_0_15px_rgba(0,255,0,0.3)] tracking-tighter">
+                <span className={`text-6xl md:text-7xl font-black ${theme.text} ${theme.dropShadow} tracking-tighter`}>
                   {stats.avgL100km.toFixed(1)}
                 </span>
                 <span className="text-zinc-500 font-bold text-xl">L/100km</span>
@@ -207,6 +240,7 @@ export default function GarageDashboard({ vehicle }: GarageDashboardProps) {
         isOpen={isAddFormOpen}
         onClose={() => setIsAddFormOpen(false)}
         onSuccess={handleAddSuccess}
+        score={vehicle.score}
       />
     </div>
   );

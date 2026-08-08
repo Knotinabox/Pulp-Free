@@ -8,9 +8,10 @@ interface AddFillUpFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (newLog: any) => void;
+  score?: number;
 }
 
-export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess }: AddFillUpFormProps) {
+export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess, score }: AddFillUpFormProps) {
   const [odometer, setOdometer] = useState<string>('');
   const [fuelLiters, setFuelLiters] = useState<string>('');
   const [totalCost, setTotalCost] = useState<string>('');
@@ -19,6 +20,17 @@ export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess }:
   const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const getThemeStyles = (s?: number) => {
+    if (s === undefined) return { bg: "bg-[#00ff00]", hoverBg: "hover:bg-[#00cc00]", ring: "focus:ring-[#00ff00]" };
+    if (s <= 20) return { bg: "bg-green-500", hoverBg: "hover:bg-green-600", ring: "focus:ring-green-500" };
+    if (s <= 40) return { bg: "bg-yellow-500", hoverBg: "hover:bg-yellow-600", ring: "focus:ring-yellow-500" };
+    if (s <= 60) return { bg: "bg-orange-500", hoverBg: "hover:bg-orange-600", ring: "focus:ring-orange-500" };
+    if (s <= 80) return { bg: "bg-red-500", hoverBg: "hover:bg-red-600", ring: "focus:ring-red-500" };
+    return { bg: "bg-red-600", hoverBg: "hover:bg-red-700", ring: "focus:ring-red-600" };
+  };
+
+  const theme = getThemeStyles(score);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +96,7 @@ export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess }:
               required
               value={odometer}
               onChange={(e) => setOdometer(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-[#00ff00] focus:border-transparent transition-all"
+              className={`w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 ${theme.ring} focus:border-transparent transition-all`}
               placeholder="e.g. 50120"
             />
           </div>
@@ -98,7 +110,7 @@ export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess }:
                 required
                 value={fuelLiters}
                 onChange={(e) => setFuelLiters(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-[#00ff00] focus:border-transparent transition-all"
+                className={`w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 ${theme.ring} focus:border-transparent transition-all`}
                 placeholder="0.00"
               />
             </div>
@@ -109,7 +121,7 @@ export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess }:
                 step="0.01"
                 value={totalCost}
                 onChange={(e) => setTotalCost(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-[#00ff00] focus:border-transparent transition-all"
+                className={`w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 ${theme.ring} focus:border-transparent transition-all`}
                 placeholder="Optional"
               />
             </div>
@@ -123,7 +135,7 @@ export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess }:
             <button
               type="button"
               onClick={() => setIsFullTank(!isFullTank)}
-              className={`w-12 h-6 rounded-full transition-colors relative ${isFullTank ? 'bg-[#00ff00]' : 'bg-zinc-700'}`}
+              className={`w-12 h-6 rounded-full transition-colors relative ${isFullTank ? theme.bg : 'bg-zinc-700'}`}
             >
               <span 
                 className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${isFullTank ? 'translate-x-6' : 'translate-x-0'}`} 
@@ -134,7 +146,7 @@ export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess }:
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-[#00ff00] text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-[#00cc00] transition-colors disabled:opacity-50 mt-6"
+            className={`w-full ${theme.bg} text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 ${theme.hoverBg} transition-colors disabled:opacity-50 mt-6`}
           >
             {isSubmitting ? (
               <span className="animate-pulse">Saving...</span>
