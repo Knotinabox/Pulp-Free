@@ -1,0 +1,152 @@
+"use client";
+
+import React, { useState } from 'react';
+import { X, Check } from 'lucide-react';
+
+interface AddFillUpFormProps {
+  vehicleId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: (newLog: any) => void;
+}
+
+export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess }: AddFillUpFormProps) {
+  const [odometer, setOdometer] = useState<string>('');
+  const [fuelLiters, setFuelLiters] = useState<string>('');
+  const [totalCost, setTotalCost] = useState<string>('');
+  const [isFullTank, setIsFullTank] = useState<boolean>(true);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/garage/${vehicleId}/fuel-logs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          odometer: Number(odometer),
+          fuelLiters: Number(fuelLiters),
+          totalCost: totalCost ? Number(totalCost) : undefined,
+          isFullTank,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to add fill-up');
+      }
+
+      onSuccess(data.log);
+      // Reset form
+      setOdometer('');
+      setFuelLiters('');
+      setTotalCost('');
+      setIsFullTank(true);
+      onClose();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-200">
+        <div className="flex justify-between items-center p-4 border-b border-zinc-800">
+          <h2 className="text-xl font-bold text-white">Log Fill-up</h2>
+          <button onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-full hover:bg-zinc-800 transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {error && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-400 mb-2">Odometer (km)</label>
+            <input
+              type="number"
+              step="1"
+              required
+              value={odometer}
+              onChange={(e) => setOdometer(e.target.value)}
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-[#00ff00] focus:border-transparent transition-all"
+              placeholder="e.g. 50120"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-zinc-400 mb-2">Fuel (Liters)</label>
+              <input
+                type="number"
+                step="0.01"
+                required
+                value={fuelLiters}
+                onChange={(e) => setFuelLiters(e.target.value)}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-[#00ff00] focus:border-transparent transition-all"
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-zinc-400 mb-2">Total Cost ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={totalCost}
+                onChange={(e) => setTotalCost(e.target.value)}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 focus:ring-[#00ff00] focus:border-transparent transition-all"
+                placeholder="Optional"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-zinc-950 border border-zinc-800 rounded-xl">
+            <div>
+              <p className="text-white font-medium">Full Tank</p>
+              <p className="text-xs text-zinc-500">Was it filled to the top?</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsFullTank(!isFullTank)}
+              className={`w-12 h-6 rounded-full transition-colors relative ${isFullTank ? 'bg-[#00ff00]' : 'bg-zinc-700'}`}
+            >
+              <span 
+                className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${isFullTank ? 'translate-x-6' : 'translate-x-0'}`} 
+              />
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-[#00ff00] text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-[#00cc00] transition-colors disabled:opacity-50 mt-6"
+          >
+            {isSubmitting ? (
+              <span className="animate-pulse">Saving...</span>
+            ) : (
+              <>
+                <Check className="w-5 h-5" />
+                Save Log
+              </>
+            )}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
