@@ -54,6 +54,7 @@ export async function GET(request: Request) {
     // 4. Cache Miss / Expired Logic
     const engineContext = engine !== 'Unknown' ? ` with the ${engine} engine` : '';
     const prompt = `You are an expert master mechanic, consumer advocate, and used car buyer's guide for the CANADIAN market. Evaluate the ${year} ${make} ${model}${engineContext}. 
+CRITICAL REGIONAL ACCURACY: You must strictly use NORTH AMERICAN / CANADIAN market specifications and engine availability for this exact model year. Do NOT reference European-market engines (e.g., if this is a 2009-2013 BMW X5 Diesel in North America, it uses the M57 engine, NOT the N57).
 Focus heavily on highly specific pre-purchase data. Identify if this model year represents a major generational shift. 
 Highlight specific engine, transmission, or electrical flaws a buyer MUST look for during a test drive (pay special attention to flaws common to the ${engine} engine if specified).
 IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead of miles, L/100km instead of MPG).
@@ -67,12 +68,16 @@ In the 'defect' field, describe these specific historical problems and generatio
 In the 'advice' field, give clear, actionable buying advice.`;
 
     const modelObj = ai.getGenerativeModel({
-      model: 'gemini-3.1-flash-lite',
+      model: 'gemini-1.5-pro',
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: {
           type: SchemaType.OBJECT,
           properties: {
+            market_analysis: {
+              type: SchemaType.STRING,
+              description: "Internal reasoning verifying the exact engine code for the Canadian market before assigning a score.",
+            },
             score: {
               type: SchemaType.INTEGER,
               description: "A reliability score from 0 to 100",
@@ -86,7 +91,7 @@ In the 'advice' field, give clear, actionable buying advice.`;
               description: "Clear, actionable buying advice (e.g., 'Avoid the 1.5L turbo and look for the 2.0L')",
             },
           },
-          required: ["score", "defect", "advice"],
+          required: ["market_analysis", "score", "defect", "advice"],
         },
       }
     });

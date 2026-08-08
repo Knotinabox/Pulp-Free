@@ -51,16 +51,21 @@ Do not give them buying advice or tell them to avoid purchasing it—they alread
 IMPORTANT: Use the metric system for all measurements (e.g., kilometers). Be highly verbose and exhaustive in your technical explanations.
 
 Provide two highly detailed sections:
-1. quirks: Be very verbose. Tap into deep enthusiast forum knowledge. List the obscure quirks, known failures, and specific symptoms they should watch out for (e.g., failing plastic cowlings raining water on injectors, vacuum line degradation, sensor failures that cause cascading issues). Give actionable advice on how to mitigate these issues.
-2. maintenance: Be very verbose. Detail the expected maintenance schedule. What specific parts need preventative replacement before they fail? What are the typical costs they should budget for annually? Explain the reasoning behind these intervals.`;
+1. market_analysis: First, explicitly state the exact engine code (e.g., M57 vs N57) and transmission used for this specific model year in the CANADIAN market. Acknowledge any differences from the European market.
+2. quirks: Be very verbose. Tap into deep enthusiast forum knowledge. List the obscure quirks, known failures, and specific symptoms they should watch out for (e.g., failing plastic cowlings raining water on injectors, vacuum line degradation, sensor failures that cause cascading issues). Give actionable advice on how to mitigate these issues.
+3. maintenance: Be very verbose. Detail the expected maintenance schedule. What specific parts need preventative replacement before they fail? What are the typical costs they should budget for annually? Explain the reasoning behind these intervals.`;
 
     const modelObj = ai.getGenerativeModel({
-      model: 'gemini-3.1-flash-lite',
+      model: 'gemini-1.5-pro',
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: {
           type: SchemaType.OBJECT,
           properties: {
+            market_analysis: {
+              type: SchemaType.STRING,
+              description: "Internal reasoning step verifying the exact Canadian market engine code.",
+            },
             quirks: {
               type: SchemaType.STRING,
               description: "Common quirks, known failures, symptoms to watch out for, and mitigation advice.",
@@ -70,7 +75,7 @@ Provide two highly detailed sections:
               description: "Expected maintenance schedule, preventative replacements, and annual budget.",
             },
           },
-          required: ["quirks", "maintenance"],
+          required: ["market_analysis", "quirks", "maintenance"],
         },
       }
     });

@@ -59,6 +59,7 @@ export async function GET(request: Request) {
     // 4. Generate Premium Content
     const engineContext = engine !== 'Unknown' ? ` with the ${engine} engine` : '';
     const prompt = `You are a premium, expert automotive analyst providing a "Deep Dive" report for the ${year} ${make} ${model}${engineContext} for the CANADIAN market. 
+CRITICAL REGIONAL ACCURACY: You must strictly use NORTH AMERICAN / CANADIAN market specifications and engine availability for this exact model year. Do NOT reference European-market engines (e.g., if this is a 2009-2013 BMW X5 Diesel in North America, it uses the M57 engine, NOT the N57).
 You must provide exactly five detailed paragraphs/sections as defined below (pay special attention to flaws/maintenance specific to the ${engine} engine if specified). 
 Do not use markdown formatting inside the JSON strings.
 IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead of miles, L/100km instead of MPG).
@@ -67,15 +68,20 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
 2. Maintenance: Describe the expected maintenance schedule, specific costly repairs to anticipate (e.g., timing belt at 100k, expensive fluid flushes), and estimated annualized repair costs.
 3. Resale: Analyze how this specific model year holds its value compared to class competitors over the next 5 years (depreciation curve).
 4. Competitors: Suggest 2-3 specific competitor vehicles a buyer should also test drive if they are considering this car, and explain why.
-5. Efficiency: Describe the real-world fuel economy or EV efficiency (in L/100km or kWh/100km) compared to official ratings, and what the buyer should actually expect to pay at the pump based on typical usage.`;
+5. Efficiency: Describe the real-world fuel economy or EV efficiency (in L/100km or kWh/100km) compared to official ratings, and what the buyer should actually expect to pay at the pump based on typical usage.
+6. market_analysis: First, explicitly state the exact engine code and transmission used for this specific model year in the CANADIAN market. Acknowledge any differences from the European market.`;
 
     const modelObj = ai.getGenerativeModel({
-      model: 'gemini-3.1-flash-lite',
+      model: 'gemini-1.5-pro',
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: {
           type: SchemaType.OBJECT,
           properties: {
+            market_analysis: {
+              type: SchemaType.STRING,
+              description: "Internal reasoning step verifying the exact Canadian market engine code.",
+            },
             test_drive: {
               type: SchemaType.STRING,
               description: "Specific noises, feels, and common failure points to check during a test drive.",
@@ -97,7 +103,7 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
               description: "Real-world fuel economy/efficiency in L/100km or kWh/100km.",
             },
           },
-          required: ["test_drive", "maintenance", "resale", "competitors", "efficiency"],
+          required: ["market_analysis", "test_drive", "maintenance", "resale", "competitors", "efficiency"],
         },
       }
     });
