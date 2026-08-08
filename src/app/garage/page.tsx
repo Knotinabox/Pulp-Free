@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, ArrowRight, Camera, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { OwnershipCard } from "@/components/OwnershipCard";
+import GarageDashboard from "@/components/GarageDashboard";
 
 export default function GaragePage() {
   const { status } = useSession();
@@ -234,6 +235,9 @@ export default function GaragePage() {
                       car={car}
                       onRemove={() => handleDelete(car.vin)}
                     />
+                    <div className="mt-4 bg-zinc-900 border-2 border-zinc-800 rounded-2xl px-6 pb-2">
+                      <GarageDashboard vehicle={car} />
+                    </div>
                   </div>
                 </div>
               );

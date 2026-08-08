@@ -136,22 +136,12 @@ export default function GarageDashboard({ vehicle }: GarageDashboardProps) {
   const theme = getThemeStyles(vehicle.score);
 
   return (
-    <div className="bg-zinc-950 min-h-screen text-white p-4 md:p-8">
-      {/* Vehicle Header */}
-      <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center border border-zinc-800">
-            {vehicle.image ? (
-              <img src={vehicle.image} alt={vehicle.model} className="w-full h-full object-cover rounded-2xl" />
-            ) : (
-              <Car className="text-zinc-500 w-8 h-8" />
-            )}
-          </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold">{vehicle.year} {vehicle.make} {vehicle.model}</h1>
-            <p className="text-zinc-400 text-sm">VIN: {vehicle.vin}</p>
-          </div>
-        </div>
+    <div className="w-full text-white py-6">
+      {/* Vehicle Header & Actions */}
+      <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+        <h3 className="text-xl font-black text-white uppercase tracking-wider flex items-center gap-2">
+          Fuel & Economy Tracking
+        </h3>
         <button
           onClick={() => setIsAddFormOpen(true)}
           className={`text-black px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-colors w-full md:w-auto justify-center ${theme.bg} ${theme.hoverBg} ${theme.shadow}`}
