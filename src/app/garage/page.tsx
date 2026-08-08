@@ -18,6 +18,7 @@ export default function GaragePage() {
   const [mileageInput, setMileageInput] = useState("");
   const [isAddingVin, setIsAddingVin] = useState(false);
   const [isScanningVin, setIsScanningVin] = useState(false);
+  const [isScanningOdo, setIsScanningOdo] = useState(false);
   const [vinError, setVinError] = useState("");
 
   const loadGarage = () => {
@@ -135,6 +136,40 @@ export default function GaragePage() {
     }
   };
 
+  const handleOdometerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setVinError("");
+    setIsScanningOdo(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        
+        const res = await fetch("/api/scan-odometer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageBase64: base64String })
+        });
+        const data = await res.json();
+        
+        if (!res.ok) {
+          setVinError(data.error || "Failed to scan odometer from image.");
+        } else {
+          setMileageInput(data.odometer.toString());
+          setVinError(""); // clear any previous errors
+        }
+        setIsScanningOdo(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      setVinError("Failed to process image.");
+      setIsScanningOdo(false);
+    }
+  };
+
   if (status === "loading" || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950">
@@ -189,17 +224,34 @@ export default function GaragePage() {
           </div>
           <div className="w-full md:w-48">
             <label className="block text-sm font-medium text-zinc-400 mb-2">Mileage (km)</label>
-            <input
-              type="number"
-              value={mileageInput}
-              onChange={(e) => setMileageInput(e.target.value)}
-              placeholder="e.g. 150000"
-              className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-lime-500 font-mono"
-            />
+            <div className="relative">
+              <input
+                type="number"
+                value={mileageInput}
+                onChange={(e) => setMileageInput(e.target.value)}
+                placeholder="e.g. 150000"
+                className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-3 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-lime-500 font-mono"
+              />
+              <input 
+                type="file" 
+                accept="image/*" 
+                capture="environment" 
+                className="hidden" 
+                id="odo-camera" 
+                onChange={handleOdometerUpload} 
+              />
+              <label 
+                htmlFor="odo-camera" 
+                className="absolute right-2 top-1.5 bottom-1.5 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded flex items-center justify-center cursor-pointer transition-colors"
+                title="Scan Odometer with Camera"
+              >
+                {isScanningOdo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+              </label>
+            </div>
           </div>
           <button 
             onClick={handleAddVin}
-            disabled={isAddingVin || isScanningVin}
+            disabled={isAddingVin || isScanningVin || isScanningOdo}
             className="w-full md:w-auto px-6 py-3 bg-lime-500 hover:bg-lime-400 text-black font-bold rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isAddingVin ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}

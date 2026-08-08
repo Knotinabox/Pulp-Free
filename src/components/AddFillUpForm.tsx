@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { X, Check } from 'lucide-react';
+import { X, Check, Camera, Loader2 } from 'lucide-react';
 
 interface AddFillUpFormProps {
   vehicleId: string;
@@ -17,6 +17,7 @@ export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess, s
   const [totalCost, setTotalCost] = useState<string>('');
   const [isFullTank, setIsFullTank] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isScanningOdo, setIsScanningOdo] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -31,6 +32,40 @@ export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess, s
   };
 
   const theme = getThemeStyles(score);
+
+  const handleOdometerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setError(null);
+    setIsScanningOdo(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        
+        const res = await fetch("/api/scan-odometer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageBase64: base64String })
+        });
+        const data = await res.json();
+        
+        if (!res.ok) {
+          setError(data.error || "Failed to scan odometer from image.");
+        } else {
+          setOdometer(data.odometer.toString());
+          setError(null); // clear any previous errors
+        }
+        setIsScanningOdo(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      setError("Failed to process image.");
+      setIsScanningOdo(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,15 +125,32 @@ export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess, s
 
           <div>
             <label className="block text-sm font-medium text-zinc-400 mb-2">Odometer (km)</label>
-            <input
-              type="number"
-              step="1"
-              required
-              value={odometer}
-              onChange={(e) => setOdometer(e.target.value)}
-              className={`w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 ${theme.ring} focus:border-transparent transition-all`}
-              placeholder="e.g. 50120"
-            />
+            <div className="relative">
+              <input
+                type="number"
+                step="1"
+                required
+                value={odometer}
+                onChange={(e) => setOdometer(e.target.value)}
+                className={`w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:ring-2 ${theme.ring} focus:border-transparent transition-all pr-12`}
+                placeholder="e.g. 50120"
+              />
+              <input 
+                type="file" 
+                accept="image/*" 
+                capture="environment" 
+                className="hidden" 
+                id="fillup-odo-camera" 
+                onChange={handleOdometerUpload} 
+              />
+              <label 
+                htmlFor="fillup-odo-camera" 
+                className="absolute right-2 top-2 bottom-2 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded flex items-center justify-center cursor-pointer transition-colors"
+                title="Scan Odometer with Camera"
+              >
+                {isScanningOdo ? <Loader2 className="w-5 h-5 animate-spin text-zinc-400" /> : <Camera className="w-5 h-5 text-zinc-400" />}
+              </label>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -145,7 +197,7 @@ export default function AddFillUpForm({ vehicleId, isOpen, onClose, onSuccess, s
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isScanningOdo}
             className={`w-full ${theme.bg} text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 ${theme.hoverBg} transition-colors disabled:opacity-50 mt-6`}
           >
             {isSubmitting ? (
