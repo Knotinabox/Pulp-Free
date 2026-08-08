@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ShieldCheck, AlertTriangle, ShieldAlert, Loader2, Camera, Wrench, TrendingUp, Users, Leaf, Trash2, ChevronDown } from "lucide-react";
 import { fetchRecalls, fetchTSBs, decodeVIN, VINData } from "@/utils/nhtsa";
+import GarageDashboard from "@/components/GarageDashboard";
 
 export interface LemonRecord {
   score?: number;
@@ -218,37 +219,40 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
       </div>
 
       {/* Details Section */}
-      <div className="flex-1 p-6 flex flex-col">
-        <div className="mb-6">
-          <h2 className="text-2xl font-black text-white">{car.year} {car.make} {car.model}</h2>
-          <div className="text-zinc-400 font-mono text-sm mt-1">{car.vin}</div>
-          <div className="flex gap-4 mt-3">
-            {isEditingMileage ? (
-              <div className="flex items-center gap-2">
-                <input 
-                  type="number"
-                  value={mileageInput}
-                  onChange={(e) => setMileageInput(e.target.value)}
-                  className="bg-zinc-950 border border-zinc-700 rounded-md px-3 py-1 text-sm text-white font-mono w-32 focus:outline-none focus:border-lime-500"
-                  placeholder="e.g. 150000"
-                />
-                <button onClick={handleMileageUpdate} className="px-3 py-1 bg-lime-500 text-black font-bold text-sm rounded-md hover:bg-lime-400">Save</button>
-                <button onClick={() => setIsEditingMileage(false)} className="px-3 py-1 bg-zinc-800 text-zinc-400 font-bold text-sm rounded-md hover:text-white">Cancel</button>
-              </div>
-            ) : (
-              <button 
-                onClick={() => setIsEditingMileage(true)}
-                title="Click to edit mileage"
-                className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm font-bold text-zinc-300 transition-colors"
-              >
-                {localMileage ? `${localMileage.toLocaleString()} km` : "Add Mileage"}
-              </button>
-            )}
+      <div className="flex-1 p-6 flex flex-col xl:flex-row gap-8">
+        
+        {/* Left Column: Car Info, Alerts & Insights */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="mb-6">
+            <h2 className="text-2xl font-black text-white">{car.year} {car.make} {car.model}</h2>
+            <div className="text-zinc-400 font-mono text-sm mt-1">{car.vin}</div>
+            <div className="flex flex-wrap gap-4 mt-3">
+              {isEditingMileage ? (
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="number"
+                    value={mileageInput}
+                    onChange={(e) => setMileageInput(e.target.value)}
+                    className="bg-zinc-950 border border-zinc-700 rounded-md px-3 py-1 text-sm text-white font-mono w-32 focus:outline-none focus:border-lime-500"
+                    placeholder="e.g. 150000"
+                  />
+                  <button onClick={handleMileageUpdate} className="px-3 py-1 bg-lime-500 text-black font-bold text-sm rounded-md hover:bg-lime-400">Save</button>
+                  <button onClick={() => setIsEditingMileage(false)} className="px-3 py-1 bg-zinc-800 text-zinc-400 font-bold text-sm rounded-md hover:text-white">Cancel</button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => setIsEditingMileage(true)}
+                  title="Click to edit mileage"
+                  className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm font-bold text-zinc-300 transition-colors"
+                >
+                  {localMileage ? `${localMileage.toLocaleString()} km` : "Add Mileage"}
+                </button>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-4">
-          {/* Urgent Alerts (Recalls & TSBs) */}
+          <div className="space-y-4">
+            {/* Urgent Alerts (Recalls & TSBs) */}
           <CollapsibleSection title="Urgent Alerts" icon={ShieldAlert} iconColor="text-red-500" defaultOpen={false}>
             {isLoadingSafety ? (
               <div className="flex items-center gap-2 text-zinc-500 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Checking safety databases...</div>
@@ -341,8 +345,16 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
               <div className="text-zinc-500 text-sm">Failed to load maintenance schedule.</div>
             )}
           </CollapsibleSection>
-
         </div>
+      </div>
+
+      {/* Right Column: Fuel Tracker */}
+      <div className="w-full xl:w-[45%] flex flex-col shrink-0">
+        <div className="bg-zinc-950 border border-zinc-800 rounded-2xl p-4 md:p-6 h-full shadow-inner flex flex-col justify-center">
+          <GarageDashboard vehicle={car} />
+        </div>
+      </div>
+
       </div>
     </div>
   );
