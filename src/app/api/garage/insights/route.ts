@@ -56,7 +56,7 @@ Provide two highly detailed sections:
 3. maintenance: Be very verbose. Detail the expected maintenance schedule. What specific parts need preventative replacement before they fail? What are the typical costs they should budget for annually? Explain the reasoning behind these intervals.`;
 
     const modelObj = ai.getGenerativeModel({
-      model: 'gemini-1.5-pro',
+      model: 'gemini-pro-latest',
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: {
