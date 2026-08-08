@@ -321,7 +321,6 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
                   </p>
                 </div>
 
-                </div>
               </div>
             ) : (
               <div className="text-zinc-500 text-sm">Failed to load insights.</div>
