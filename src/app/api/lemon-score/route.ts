@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { GoogleGenAI, Type } from '@google/genai';
 import connectToDatabase from '@/lib/mongodb';
 import VehicleAdvice from '@/models/VehicleAdvice';
 
-const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 function isExpired(dateString: Date) {
   const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
@@ -67,40 +67,39 @@ The Pulp Score: Your primary task is to calculate a 'Pulp Score' from 0 to 100. 
 In the 'defect' field, describe these specific historical problems and generational quirks in detail (2-3 sentences). 
 In the 'advice' field, give clear, actionable buying advice.`;
 
-    const modelObj = ai.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: SchemaType.OBJECT,
-          properties: {
-            market_analysis: {
-              type: SchemaType.STRING,
-              description: "Internal reasoning verifying the exact engine code for the Canadian market before assigning a score.",
-            },
-            score: {
-              type: SchemaType.INTEGER,
-              description: "A reliability score from 0 to 100",
-            },
-            defect: {
-              type: SchemaType.STRING,
-              description: "A detailed summary of specific historical problems, generational quirks, and engine/transmission flaws (2-3 sentences)",
-            },
-            advice: {
-              type: SchemaType.STRING,
-              description: "Clear, actionable buying advice (e.g., 'Avoid the 1.5L turbo and look for the 2.0L')",
-            },
-          },
-          required: ["market_analysis", "score", "defect", "advice"],
-        },
-      }
-    });
-
-    let result;
+    let response;
     let retries = 3;
     while (retries > 0) {
       try {
-        result = await modelObj.generateContent(prompt);
+        response = await ai.models.generateContent({
+          model: 'gemini-3.6-flash',
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                market_analysis: {
+                  type: Type.STRING,
+                  description: "Internal reasoning verifying the exact engine code for the Canadian market before assigning a score.",
+                },
+                score: {
+                  type: Type.INTEGER,
+                  description: "A reliability score from 0 to 100",
+                },
+                defect: {
+                  type: Type.STRING,
+                  description: "A detailed summary of specific historical problems, generational quirks, and engine/transmission flaws (2-3 sentences)",
+                },
+                advice: {
+                  type: Type.STRING,
+                  description: "Clear, actionable buying advice (e.g., 'Avoid the 1.5L turbo and look for the 2.0L')",
+                },
+              },
+              required: ["market_analysis", "score", "defect", "advice"],
+            },
+          }
+        });
         break;
       } catch (err: any) {
         if (err.message?.includes('503') && retries > 1) {
@@ -112,9 +111,7 @@ In the 'advice' field, give clear, actionable buying advice.`;
         }
       }
     }
-    const response = result!.response;
-
-    const text = response.text();
+    const text = response!.text;
     if (!text) {
       throw new Error("Empty response from AI");
     }

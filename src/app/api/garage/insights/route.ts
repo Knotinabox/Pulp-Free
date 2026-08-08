@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { GoogleGenAI, Type } from '@google/genai';
 import connectToDatabase from '@/lib/mongodb';
 import OwnershipAdvice from '@/models/OwnershipAdvice';
 
-const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 function isExpired(dateString: Date) {
   const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
@@ -55,36 +55,35 @@ Provide two highly detailed sections:
 2. quirks: Be very verbose. Tap into deep enthusiast forum knowledge. List the obscure quirks, known failures, and specific symptoms they should watch out for (e.g., failing plastic cowlings raining water on injectors, vacuum line degradation, sensor failures that cause cascading issues). Give actionable advice on how to mitigate these issues.
 3. maintenance: Be very verbose. Detail the expected maintenance schedule. What specific parts need preventative replacement before they fail? What are the typical costs they should budget for annually? Explain the reasoning behind these intervals.`;
 
-    const modelObj = ai.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: SchemaType.OBJECT,
-          properties: {
-            market_analysis: {
-              type: SchemaType.STRING,
-              description: "Internal reasoning step verifying the exact Canadian market engine code.",
-            },
-            quirks: {
-              type: SchemaType.STRING,
-              description: "Common quirks, known failures, symptoms to watch out for, and mitigation advice.",
-            },
-            maintenance: {
-              type: SchemaType.STRING,
-              description: "Expected maintenance schedule, preventative replacements, and annual budget.",
-            },
-          },
-          required: ["market_analysis", "quirks", "maintenance"],
-        },
-      }
-    });
-
-    let result;
+    let response;
     let retries = 3;
     while (retries > 0) {
       try {
-        result = await modelObj.generateContent(prompt);
+        response = await ai.models.generateContent({
+          model: 'gemini-3.6-flash',
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                market_analysis: {
+                  type: Type.STRING,
+                  description: "Internal reasoning step verifying the exact Canadian market engine code.",
+                },
+                quirks: {
+                  type: Type.STRING,
+                  description: "Common quirks, known failures, symptoms to watch out for, and mitigation advice.",
+                },
+                maintenance: {
+                  type: Type.STRING,
+                  description: "Expected maintenance schedule, preventative replacements, and annual budget.",
+                },
+              },
+              required: ["market_analysis", "quirks", "maintenance"],
+            },
+          }
+        });
         break;
       } catch (err: any) {
         if (err.message?.includes('503') && retries > 1) {
@@ -95,8 +94,8 @@ Provide two highly detailed sections:
         }
       }
     }
-    const response = result!.response;
-    const text = response.text();
+    
+    const text = response!.text;
 
     if (!text) {
       throw new Error("Empty response from AI");

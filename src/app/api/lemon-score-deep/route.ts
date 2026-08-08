@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
+import { GoogleGenAI, Type } from '@google/genai';
 import connectToDatabase from '@/lib/mongodb';
 import VehicleAdvice from '@/models/VehicleAdvice';
 
-const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
 function isExpired(dateString: Date) {
   const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
@@ -71,48 +71,47 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
 5. Efficiency: Describe the real-world fuel economy or EV efficiency (in L/100km or kWh/100km) compared to official ratings, and what the buyer should actually expect to pay at the pump based on typical usage.
 6. market_analysis: First, explicitly state the exact engine code and transmission used for this specific model year in the CANADIAN market. Acknowledge any differences from the European market.`;
 
-    const modelObj = ai.getGenerativeModel({
-      model: 'gemini-2.5-flash',
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: SchemaType.OBJECT,
-          properties: {
-            market_analysis: {
-              type: SchemaType.STRING,
-              description: "Internal reasoning step verifying the exact Canadian market engine code.",
-            },
-            test_drive: {
-              type: SchemaType.STRING,
-              description: "Specific noises, feels, and common failure points to check during a test drive.",
-            },
-            maintenance: {
-              type: SchemaType.STRING,
-              description: "Detailed expected maintenance schedule and costly repairs to anticipate.",
-            },
-            resale: {
-              type: SchemaType.STRING,
-              description: "Depreciation curve and resale value analysis.",
-            },
-            competitors: {
-              type: SchemaType.STRING,
-              description: "Competitor vehicles to cross-shop and why.",
-            },
-            efficiency: {
-              type: SchemaType.STRING,
-              description: "Real-world fuel economy/efficiency in L/100km or kWh/100km.",
-            },
-          },
-          required: ["market_analysis", "test_drive", "maintenance", "resale", "competitors", "efficiency"],
-        },
-      }
-    });
-
-    let result;
+    let response;
     let retries = 3;
     while (retries > 0) {
       try {
-        result = await modelObj.generateContent(prompt);
+        response = await ai.models.generateContent({
+          model: 'gemini-3.6-flash',
+          contents: prompt,
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                market_analysis: {
+                  type: Type.STRING,
+                  description: "Internal reasoning step verifying the exact Canadian market engine code.",
+                },
+                test_drive: {
+                  type: Type.STRING,
+                  description: "Specific noises, feels, and common failure points to check during a test drive.",
+                },
+                maintenance: {
+                  type: Type.STRING,
+                  description: "Detailed expected maintenance schedule and costly repairs to anticipate.",
+                },
+                resale: {
+                  type: Type.STRING,
+                  description: "Depreciation curve and resale value analysis.",
+                },
+                competitors: {
+                  type: Type.STRING,
+                  description: "Competitor vehicles to cross-shop and why.",
+                },
+                efficiency: {
+                  type: Type.STRING,
+                  description: "Real-world fuel economy/efficiency in L/100km or kWh/100km.",
+                },
+              },
+              required: ["market_analysis", "test_drive", "maintenance", "resale", "competitors", "efficiency"],
+            },
+          }
+        });
         break;
       } catch (err: any) {
         if (err.message?.includes('503') && retries > 1) {
@@ -124,8 +123,7 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers instead 
         }
       }
     }
-    const response = result!.response;
-    const text = response.text();
+    const text = response!.text;
 
     if (!text) {
       throw new Error("Empty response from AI");
