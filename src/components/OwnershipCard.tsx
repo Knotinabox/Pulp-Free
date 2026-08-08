@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ShieldCheck, AlertTriangle, ShieldAlert, Loader2, Camera, Wrench, TrendingUp, Users, Leaf, Trash2 } from "lucide-react";
+import { ShieldCheck, AlertTriangle, ShieldAlert, Loader2, Camera, Wrench, TrendingUp, Users, Leaf, Trash2, ChevronDown } from "lucide-react";
 import { fetchRecalls, fetchTSBs, decodeVIN, VINData } from "@/utils/nhtsa";
 
 export interface LemonRecord {
@@ -45,6 +45,29 @@ function formatInsightText(text: string) {
     }
     return <span key={idx}>{line.replace(/\*\*/g, '')}{'\n'}</span>;
   });
+}
+
+function CollapsibleSection({ title, icon: Icon, children, defaultOpen = false, iconColor = "text-zinc-400" }: any) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  return (
+    <div className="border border-zinc-800 rounded-xl overflow-hidden bg-zinc-900/20">
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-4 flex items-center justify-between bg-zinc-800/30 hover:bg-zinc-800/60 transition-colors text-left"
+      >
+        <div className="flex items-center gap-2">
+          {Icon && <Icon className={`w-4 h-4 ${iconColor}`} />}
+          <span className="text-sm font-black text-white uppercase tracking-wider">{title}</span>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-zinc-400 transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      {isOpen && (
+        <div className="p-4 border-t border-zinc-800 animate-in slide-in-from-top-2 duration-200">
+          {children}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => void }) {
@@ -224,12 +247,9 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Urgent Alerts (Recalls & TSBs) */}
-          <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider mb-3 flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-red-500" /> Urgent Alerts
-            </h3>
+          <CollapsibleSection title="Urgent Alerts" icon={ShieldAlert} iconColor="text-red-500" defaultOpen={false}>
             {isLoadingSafety ? (
               <div className="flex items-center gap-2 text-zinc-500 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Checking safety databases...</div>
             ) : (
@@ -275,13 +295,10 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
                 )}
               </div>
             )}
-          </div>
+          </CollapsibleSection>
 
-          {/* AI Insights (Common Quirks & Maintenance) */}
-          <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider mb-3 flex items-center gap-2">
-              <Wrench className="w-4 h-4 text-blue-500" /> Ownership Insights
-            </h3>
+          {/* AI Insights (Common Quirks & Problems) */}
+          <CollapsibleSection title="Ownership Insights" icon={Wrench} iconColor="text-blue-500" defaultOpen={false}>
             {isLoadingAi ? (
               <div className="flex items-center gap-2 text-zinc-500 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Analyzing vehicle history...</div>
             ) : aiRecord ? (
@@ -304,18 +321,27 @@ export function OwnershipCard({ car, onRemove }: { car: any, onRemove: () => voi
                   </p>
                 </div>
 
-                {/* Maintenance */}
-                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-                  <h4 className="text-xs font-black text-blue-500 tracking-wider mb-3 uppercase">Expected Maintenance</h4>
-                  <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">
-                    {aiRecord?.maintenance ? formatInsightText(aiRecord.maintenance) : "Detailed maintenance schedule pending."}
-                  </p>
                 </div>
               </div>
             ) : (
               <div className="text-zinc-500 text-sm">Failed to load insights.</div>
             )}
-          </div>
+          </CollapsibleSection>
+
+          {/* Expected Maintenance - Pulled out to be more visible */}
+          <CollapsibleSection title="Expected Maintenance" icon={TrendingUp} iconColor="text-lime-500" defaultOpen={true}>
+            {isLoadingAi ? (
+              <div className="flex items-center gap-2 text-zinc-500 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Loading maintenance...</div>
+            ) : aiRecord ? (
+              <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/20">
+                <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">
+                  {aiRecord?.maintenance ? formatInsightText(aiRecord.maintenance) : "Detailed maintenance schedule pending."}
+                </p>
+              </div>
+            ) : (
+              <div className="text-zinc-500 text-sm">Failed to load maintenance schedule.</div>
+            )}
+          </CollapsibleSection>
 
         </div>
       </div>
