@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(request: Request) {
   try {
@@ -18,25 +18,25 @@ export async function POST(request: Request) {
     }
     const mimeType = matches[1];
     const data = matches[2];
-
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
     const prompt = `Extract the 17-character VIN (Vehicle Identification Number) from this image. 
 Return ONLY the 17-character string. Do not include any other text, punctuation, or spaces.
 A VIN only contains uppercase letters and numbers, and it NEVER uses the letters I (i), O (o), or Q (q) to avoid confusion with numbers.`;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data,
-          mimeType
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.6-flash',
+      contents: [
+        prompt,
+        {
+          inlineData: {
+            data,
+            mimeType
+          }
         }
-      }
-    ]);
+      ]
+    });
 
-    const response = await result.response;
-    let vin = response.text().trim().toUpperCase();
+    let vin = response.text!.trim().toUpperCase();
     
     // Clean up any stray spaces or punctuation
     vin = vin.replace(/[^A-Z0-9]/g, '');
