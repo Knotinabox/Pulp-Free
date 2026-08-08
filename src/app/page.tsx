@@ -88,7 +88,7 @@ export default function Home() {
       if (sortOption === "year_desc") sortParams = "&sort=year&sort_order=desc";
 
       const coordsParam = (lat && lon) ? `&lat=${lat}&lon=${lon}` : '';
-      const res = await fetch(`/api/listings?zip=${encodeURIComponent(zip)}${coordsParam}&radius=${radiusMiles}&type=${encodeURIComponent(vehicleType)}&budget=${encodeURIComponent(budget)}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&start=${start}&fuelType=${encodeURIComponent(fuelType)}${sortParams}`);
+      const res = await fetch(`/api/market-search?zip=${encodeURIComponent(zip)}${coordsParam}&radius=${radiusMiles}&type=${encodeURIComponent(vehicleType)}&budget=${encodeURIComponent(budget)}&make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&start=${start}&fuelType=${encodeURIComponent(fuelType)}${sortParams}`);
       const data = await res.json();
       
       if (data.error) {
