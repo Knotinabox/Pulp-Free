@@ -52,8 +52,8 @@ IMPORTANT: Use the metric system for all measurements (e.g., kilometers). Be hig
 
 Provide two highly detailed sections:
 1. market_analysis: First, explicitly state the exact engine code (e.g., M57 vs N57) and transmission used for this specific model year in the CANADIAN market. Acknowledge any differences from the European market.
-2. quirks: Be very verbose. Tap into deep enthusiast forum knowledge. List the obscure quirks, known failures, and specific symptoms they should watch out for (e.g., failing plastic cowlings raining water on injectors, vacuum line degradation, sensor failures that cause cascading issues). Give actionable advice on how to mitigate these issues.
-3. maintenance: Be very verbose. Detail the expected maintenance schedule. What specific parts need preventative replacement before they fail? What are the typical costs they should budget for annually? Explain the reasoning behind these intervals.`;
+2. quirks: Be very verbose. Tap into deep enthusiast forum knowledge. List the obscure quirks, known failures, and specific symptoms they should watch out for (e.g., failing plastic cowlings raining water on injectors, vacuum line degradation, sensor failures that cause cascading issues). Give actionable advice on how to mitigate these issues. VERY IMPORTANT: Format your response using clear bullet points and paragraph spacing for readability (do not output a single wall of text).
+3. maintenance: Be very verbose. Detail the expected maintenance schedule. What specific parts need preventative replacement before they fail? What are the typical costs they should budget for annually? Explain the reasoning behind these intervals. VERY IMPORTANT: Format your response using clear bullet points and paragraph spacing for readability.`;
 
     let response;
     let retries = 3;
